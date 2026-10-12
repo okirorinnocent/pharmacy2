@@ -464,15 +464,39 @@
         grid-template-columns: repeat(2, 1fr)
       }
     }
+    /* ---- v3 improvements ---- */
+    .card{overflow-x:auto}
+    .top{padding:10px 14px}
+    .search input{padding:14px 16px;font-size:16px}
+    .search button{padding:0 22px}
+    .hb{border:1px solid #ffffff44;border-radius:8px;padding:9px 13px}
+    .hb:hover{background:#ffffff14}
+    .lay aside.card{position:sticky;top:84px}
+    .cat small{float:right}
+    .tools{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:2px 0 10px}
+    .tools .bar{margin:0;flex:1}
+    .tools select{width:auto;margin:0}
+    .tools label{display:flex;align-items:center;gap:6px;cursor:pointer}
+    .tools label input{width:auto;margin:0}
+    .sk{height:260px;border-radius:8px;background:linear-gradient(90deg,#fff 25%,#f0f2f2 50%,#fff 75%);background-size:200% 100%;animation:sh 1.2s infinite}
+    @keyframes sh{to{background-position:-200% 0}}
+    .th{display:inline-flex;width:34px;height:34px;border-radius:6px;background:#f4f7f7;align-items:center;justify-content:center;margin-right:8px;vertical-align:middle;overflow:hidden}
+    .th img{width:100%;height:100%;object-fit:contain}
+    .warn{color:#b12704}
+    .bad{color:#b12704}
+    .lowrow{background:#fff6ec}
+    .pay label:has(input:disabled){opacity:.55;cursor:not-allowed}
+    button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #f68b1e;outline-offset:2px}
+    @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
   </style>
 </head>
 
 <body>
   <header>
     <div class="top"><a class="logo" data-go="shop">💊 MedSupply<span>Uganda</span></a>
-      <div class="search"><input id="q" placeholder="Search medicines, brands and categories"><button
+      <div class="search"><input id="q" placeholder="Search medicines, brands and categories  ( press / )" aria-label="Search products"><button
           id="sb">SEARCH</button></div>
-      <div id="acct"></div><button class="hb" id="cb">🛒 Cart<b id="cc">0</b></button>
+      <div id="acct"></div><button class="hb" id="cb" aria-label="Open cart">🛒 Cart<b id="cc">0</b></button>
     </div>
   </header>
   <main id="app"></main>
@@ -489,6 +513,12 @@
     const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     const ugx = n => "UGX " + Math.round(+n || 0).toLocaleString();
     const ICON = { Antimalarial: "🦟", Antibiotic: "💊", Rehydration: "💧", Analgesic: "🤕" };
+    let srt = "name", stockOnly = false;
+    const soon = d => d && new Date(d) - Date.now() < 90 * 864e5 && new Date(d) > Date.now() ? ' <b class="warn">⚠ Expires soon</b>' : "";
+    const expired = d => d && new Date(d) < Date.now();
+    const pct = p => p.old_price > p.price ? 1 - p.price / p.old_price : 0;
+    const sortList = l => srt === "pa" ? l.sort((a, b) => a.price - b.price) : srt === "pd" ? l.sort((a, b) => b.price - a.price) : srt === "off" ? l.sort((a, b) => pct(b) - pct(a)) : l;
+    function clampCart() { if (!products.length) return; let ch = false; for (const [id, q] of Object.entries(cart)) { const p = products.find(x => x.id === id); if (!p || p.stock <= 0 || expired(p.expiry)) { delete cart[id]; ch = true; } else if (q > p.stock) { cart[id] = p.stock; ch = true; } } if (ch) { persist(); toast("Your cart was updated to match available stock", 1); } }
     let me = null, profile = null, products = [], view = "shop", cat = "All", signup = false, myOrders = [];
     let cart = (() => { try { return JSON.parse(localStorage.getItem("ms_cart")) || {}; } catch { return {}; } })();
     const count = () => Object.values(cart).reduce((a, b) => a + b, 0);
@@ -526,7 +556,8 @@
       if (t.dataset.act === "reorder") { const o = myOrders.find(x => x.id == t.dataset.oid); o.items.forEach(i => { const pp = products.find(x => x.id === i.id); if (pp && pp.stock > 0) cart[i.id] = Math.min(i.qty, pp.stock); }); persist(); go("shop"); return openDrawer(); }
       refresh();
     });
-    $("#q").addEventListener("input", () => { if (view !== "shop") go("shop"); else drawShop(); });
+    let qt; $("#q").addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(() => { if (view !== "shop") go("shop"); else drawShop(); }, 150); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); if (e.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) && me) { e.preventDefault(); $("#q").focus(); } });
     function refresh() { persist(); const y = scrollY; if (view === "shop") drawShop(); if (view === "checkout") sumDraw(); drawDrawer(); scrollTo(0, y); }
 
     // ---------- auth ----------
@@ -548,25 +579,28 @@
 
     // ---------- shop ----------
     async function vShop() {
+      if (!products.length) $("#app").innerHTML = `<div class="grid">${"<div class=sk></div>".repeat(8)}</div>`;
       if (!products.length) { const r = await sb.from("products").select("*").order("name"); if (r.error) return toast(r.error.message, 1); products = r.data || []; }
-      drawShop(); drawDrawer();
+      clampCart(); drawShop(); drawDrawer();
     }
     const ctl = p => {
       const q = cart[p.id] || 0; if (p.stock <= 0) return `<button class="ob" disabled>Out of stock</button>`;
+      if (expired(p.expiry)) return `<button class="ob" disabled>Expired</button>`;
       return q ? `<div class="step"><button data-act="dec" data-id="${p.id}">−</button><span>${q}</span><button data-act="inc" data-id="${p.id}">+</button></div>` : `<button class="ob" data-act="inc" data-id="${p.id}">🛒 Add to cart</button>`;
     };
     const card = p => {
       const off = p.old_price > p.price ? Math.round(100 - p.price / p.old_price * 100) : 0;
       return `<div class="pc">${off ? `<span class="dis">-${off}%</span>` : ""}<div class="im">${p.image_url ? `<img src="${esc(p.image_url)}" alt="" loading="lazy">` : ICON[p.category] || "💊"}</div>
   <div class="nm">${esc(p.name)}</div><div class="pr">${ugx(p.price)}${off ? `<s>${ugx(p.old_price)}</s>` : ""}</div>
-  <div class="st ${p.stock <= 0 ? "out" : p.stock <= p.reorder_level ? "low" : ""}">${p.stock <= 0 ? "Out of stock" : p.stock <= p.reorder_level ? `Only ${p.stock} left` : "In stock"}${p.expiry ? " · Exp " + esc(p.expiry) : ""}</div>${ctl(p)}</div>`;
+  <div class="st ${p.stock <= 0 ? "out" : p.stock <= p.reorder_level ? "low" : ""}">${p.stock <= 0 ? "Out of stock" : p.stock <= p.reorder_level ? `Only ${p.stock} left` : "In stock"}${p.expiry ? " · Exp " + esc(p.expiry) : ""}${soon(p.expiry)}</div>${ctl(p)}</div>`;
     };
     function drawShop() {
       if (view !== "shop") return;
       const cats = ["All", ...new Set(products.map(p => p.category).filter(Boolean))], f = $("#q").value.trim().toLowerCase();
-      const list = products.filter(p => (cat === "All" || p.category === cat) && (!f || (p.name + " " + (p.category || "")).toLowerCase().includes(f)));
-      $("#app").innerHTML = `<div class="lay"><aside class="card"><h4>Categories</h4>${cats.map(c => `<a class="cat ${c === cat ? "on" : ""}" data-cat="${esc(c)}">${esc(c)}</a>`).join("")}</aside>
-  <section><div class="bar">${list.length} product${list.length === 1 ? "" : "s"}</div><div class="grid">${list.map(card).join("") || `<p class="m">No products found.</p>`}</div></section></div>`;
+      let list = products.filter(p => (cat === "All" || p.category === cat) && (!stockOnly || p.stock > 0) && (!f || (p.name + " " + (p.category || "")).toLowerCase().includes(f)));
+      list = sortList(list);
+      $("#app").innerHTML = `<div class="lay"><aside class="card"><h4>Categories</h4>${cats.map(c => `<a class="cat ${c === cat ? "on" : ""}" data-cat="${esc(c)}">${esc(c)} <small class="m">${c === "All" ? products.length : products.filter(p => p.category === c).length}</small></a>`).join("")}</aside>
+  <section><div class="tools"><div class="bar">${list.length} product${list.length === 1 ? "" : "s"}</div><label><input type="checkbox" ${stockOnly ? "checked" : ""} onchange="stockOnly=this.checked;drawShop()">In stock only</label><select aria-label="Sort products" onchange="srt=this.value;drawShop()">${[["name", "Name A–Z"], ["pa", "Price: low to high"], ["pd", "Price: high to low"], ["off", "Biggest discount"]].map(o => `<option value="${o[0]}" ${o[0] === srt ? "selected" : ""}>${o[1]}</option>`).join("")}</select></div><div class="grid">${list.map(card).join("") || `<p class="m">No products found.</p>`}</div></section></div>`;
     }
 
     // ---------- cart drawer ----------
@@ -574,10 +608,10 @@
     function closeDrawer() { $("#dr").classList.remove("on"); $("#ov").classList.remove("on"); }
     function drawDrawer() {
       const L = lines();
-      $("#dr").innerHTML = `<div class="row"><h3 style="margin:0">Cart (${count()})</h3><a data-act="x" onclick="closeDrawer()">✕</a></div><div class="lines">${L.map(l => `<div class="card"><div class="nm">${esc(l.p.name)}</div>
+      $("#dr").innerHTML = `<div class="row"><h3 style="margin:0">Cart (${count()})</h3><a data-act="x" onclick="closeDrawer()" aria-label="Close cart">✕</a></div><div class="lines">${L.map(l => `<div class="card"><div class="nm"><span class="th">${l.p.image_url ? `<img src="${esc(l.p.image_url)}" alt="">` : ICON[l.p.category] || "💊"}</span>${esc(l.p.name)}</div><div class="m">${ugx(l.p.price)} each</div>
   <div class="row"><b>${ugx(l.p.price * l.q)}</b><div class="step" style="width:120px"><button data-act="dec" data-id="${l.p.id}">−</button><span>${l.q}</span><button data-act="inc" data-id="${l.p.id}">+</button></div></div>
   <a class="link" data-act="del" data-id="${l.p.id}">Remove</a></div>`).join("") || `<p class="m">Your cart is empty.</p>`}</div>
-  <div class="row"><b>Subtotal</b><b>${ugx(total())}</b></div><button class="ob" ${L.length ? "" : "disabled"} data-go="checkout">Checkout</button>`;
+  ${L.length ? `<a class="link" onclick="if(confirm('Clear your cart?')){cart={};refresh()}">Clear cart</a>` : ""}<div class="row"><b>Subtotal</b><b>${ugx(total())}</b></div><button class="ob" ${L.length ? "" : "disabled"} data-go="checkout">Checkout</button>`;
     }
 
     // ---------- checkout ----------
@@ -586,7 +620,7 @@
       $("#app").innerHTML = `<div class="two"><div><div class="card"><h3>1. Delivery details</h3><input id="rn" placeholder="Recipient / shop name" value="${esc(profile?.business_name)}">
   <input id="rp" placeholder="Phone (2567...)" value="${esc(profile?.phone)}"><input id="ra" placeholder="Delivery address / district" value="${esc(profile?.address)}"><textarea id="nt" placeholder="Notes (optional)"></textarea></div>
   <div class="card pay"><h3>2. Payment method</h3><label><input type="radio" name="pm" value="Mobile Money" checked>📱 Mobile Money (MTN / Airtel)</label>
-  <label><input type="radio" name="pm" value="Cash on Delivery">💵 Cash on Delivery</label><label><input type="radio" name="pm" value="Trade Credit">🧾 7-day Trade Credit <span class="m">(limit: ${ugx(profile?.credit_limit)})</span></label></div></div>
+  <label><input type="radio" name="pm" value="Cash on Delivery">💵 Cash on Delivery</label><label><input type="radio" name="pm" value="Trade Credit" ${total() > (profile?.credit_limit || 0) ? "disabled" : ""}>🧾 7-day Trade Credit <span class="m">(limit: ${ugx(profile?.credit_limit)})</span>${total() > (profile?.credit_limit || 0) ? ` <span class="bad">· this order is above your limit</span>` : ""}</label></div></div>
   <div class="card" id="sum"></div></div>`;
       sumDraw();
     }
@@ -599,6 +633,7 @@
     async function place() {
       const btn = $("#place"), name = $("#rn").value.trim(), phone = $("#rp").value.trim(), addr = $("#ra").value.trim();
       if (!name || !phone || !addr) return toast("Please fill in name, phone and delivery address", 1);
+      if (!/^(\+?256|0)\d{9}$/.test(phone.replace(/[\s-]/g, ""))) return toast("Enter a valid Ugandan phone number, e.g. 256772123456", 1);
       btn.disabled = true; btn.textContent = "Placing order...";
       const items = Object.entries(cart).map(([id, qty]) => ({ id, qty }));
       const { data, error } = await sb.rpc("place_order", { p_items: items, p_name: name, p_phone: phone, p_address: addr, p_method: document.querySelector("input[name=pm]:checked").value, p_notes: $("#nt").value });
@@ -618,7 +653,7 @@
     <div class="trk">${o.status === "Cancelled" ? `<div class="x">Cancelled</div>` : S.map((s, k) => `<div class="${i >= k ? "done" : ""}">${s}</div>`).join("")}</div>
     ${o.items.map(x => `<div class="row"><span>${esc(x.name)} × ${x.qty}</span><span>${ugx(x.price * x.qty)}</span></div>`).join("")}
     <div class="row"><span class="m">${esc(o.payment_method)} · ${esc(o.payment_status)}</span><b>${ugx(o.total)}</b></div><button class="btn g" data-act="reorder" data-oid="${o.id}">Reorder</button></div>`;
-      }).join("") || `<div class="card m">No orders yet.</div>`);
+      }).join("") || `<div class="card m">No orders yet. <a class="link" data-go="shop">Start shopping</a></div>`);
     }
 
     // ---------- admin ----------
@@ -629,17 +664,18 @@
       const opt = (a, v) => a.map(x => `<option ${x === v ? "selected" : ""}>${x}</option>`).join("");
       const inp = (x, f, t = "number") => `<input type="${t}" value="${esc(x[f] ?? "")}" data-p="${esc(x.id)}" data-f="${f}">`;
       $("#app").innerHTML = `<div class="gs"><div class="card">Orders<div class="stat">${orders.length}</div></div><div class="card">Revenue<div class="stat">${ugx(rev)}</div></div><div class="card">Low stock<div class="stat">${prods.filter(x => x.stock <= x.reorder_level).length}</div></div></div>
-  <div class="card"><h3>Orders</h3><table><thead><tr><th>#</th><th>Customer</th><th>Phone</th><th>Address</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead><tbody>${orders.map(r =>
+  <div class="card"><div class="row"><h3 style="margin:0">Orders</h3><button class="btn g" id="csv">Export CSV</button></div><table><thead><tr><th>#</th><th>Customer</th><th>Phone</th><th>Address</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead><tbody>${orders.map(r =>
         `<tr><td>${r.id}</td><td>${esc(r.recipient_name)}</td><td>${esc(r.phone)}</td><td>${esc(r.address)}</td><td>${r.items.map(i => esc(i.name) + " ×" + i.qty).join(", ")}</td><td>${ugx(r.total)}</td>
   <td><select data-o="${r.id}" data-f="payment_status">${opt(P, r.payment_status)}</select></td><td><select data-o="${r.id}" data-f="status">${opt(S, r.status)}</select></td></tr>`).join("")}</tbody></table></div>
-  <div class="card"><h3>Inventory</h3><table><thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Old price</th><th>Stock</th><th>Reorder</th><th>Image URL</th><th></th></tr></thead><tbody>${prods.map(x =>
-          `<tr><td>${esc(x.id)}</td><td>${esc(x.name)}</td><td>${inp(x, "price")}</td><td>${inp(x, "old_price")}</td><td>${inp(x, "stock")}</td><td>${inp(x, "reorder_level")}</td><td>${inp(x, "image_url", "text")}</td><td><button class="btn" data-save="${esc(x.id)}">Save</button></td></tr>`).join("")}</tbody></table></div>
-  <div class="card"><h3>Add product</h3><div class="gs"><input id="nid" placeholder="ID e.g. INV-009"><input id="nn" placeholder="Name"><input id="nc" placeholder="Category"><input id="npr" type="number" placeholder="Price"><input id="nst" type="number" placeholder="Stock"><input id="nex" type="date"><input id="nim" placeholder="Image URL (optional)"></div><button class="btn" id="add">Add product</button></div>`;
+  <div class="card"><h3>Inventory</h3><table><thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Old price</th><th>Stock</th><th>Reorder</th><th>Category</th><th>Image URL</th><th></th></tr></thead><tbody>${prods.map(x =>
+          `<tr class="${x.stock <= x.reorder_level ? "lowrow" : ""}"><td>${esc(x.id)}</td><td>${esc(x.name)}</td><td>${inp(x, "price")}</td><td>${inp(x, "old_price")}</td><td>${inp(x, "stock")}</td><td>${inp(x, "reorder_level")}</td><td>${inp(x, "category", "text")}</td><td>${inp(x, "image_url", "text")}</td><td><button class="btn" data-save="${esc(x.id)}">Save</button></td></tr>`).join("")}</tbody></table></div>
+  <div class="card"><h3>Add product</h3><div class="gs"><input id="nid" placeholder="ID e.g. INV-009"><input id="nn" placeholder="Name"><input id="nc" list="cl" placeholder="Category"><datalist id="cl">${[...new Set(prods.map(x => x.category).filter(Boolean))].map(c => `<option value="${esc(c)}">`).join("")}</datalist><input id="npr" type="number" placeholder="Price"><input id="nst" type="number" placeholder="Stock"><input id="nex" type="date"><input id="nim" placeholder="Image URL (optional)"></div><button class="btn" id="add">Add product</button></div>`;
       document.querySelectorAll("[data-o]").forEach(s => s.onchange = async () => { const { error } = await sb.from("orders").update({ [s.dataset.f]: s.value }).eq("id", s.dataset.o); toast(error ? error.message : "Order updated", !!error); });
       document.querySelectorAll("[data-save]").forEach(b => b.onclick = async () => {
         const id = b.dataset.save, v = {}; document.querySelectorAll(`[data-p="${id}"]`).forEach(i => v[i.dataset.f] = i.type === "number" ? (i.value === "" ? null : +i.value) : (i.value || null));
         const { error } = await sb.from("products").update(v).eq("id", id); products = []; toast(error ? error.message : "Saved", !!error);
       });
+      $("#csv").onclick = () => { const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`; const rows = [["Order", "Date", "Customer", "Phone", "Address", "Items", "Total", "Payment", "Payment status", "Status"], ...orders.map(r => [r.id, r.created_at, r.recipient_name, r.phone, r.address, r.items.map(i => i.name + " x" + i.qty).join("; "), r.total, r.payment_method, r.payment_status, r.status])]; const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([rows.map(r => r.map(q).join(",")).join("\n")], { type: "text/csv" })); a.download = "medsupply-orders.csv"; a.click(); };
       $("#add").onclick = async () => {
         const { error } = await sb.from("products").insert({ id: $("#nid").value.trim(), name: $("#nn").value.trim(), category: $("#nc").value.trim(), price: +$("#npr").value, stock: +$("#nst").value, expiry: $("#nex").value || null, image_url: $("#nim").value.trim() || null });
         if (error) return toast(error.message, 1); products = []; vAdmin();
