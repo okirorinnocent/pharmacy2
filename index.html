@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MedSupply Uganda | B2B Pharma Marketplace</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <style>
+    :root {
+      --g: #0E6B63;
+      --y: #F2B600;
+      --bg: #f5f7f7;
+      --c: #fff;
+      --t: #14222b;
+      --m: #64748b;
+      --b: #dde4e6
+    }
+
+    @media(prefers-color-scheme:dark) {
+      :root {
+        --bg: #0f1719;
+        --c: #18232a;
+        --t: #e6eef0;
+        --m: #93a4ab;
+        --b: #2a3a42
+      }
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font: 15px system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--t)
+    }
+
+    header {
+      background: var(--g);
+      color: #fff;
+      padding: 12px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    header b {
+      font-size: 18px;
+      margin-right: auto
+    }
+
+    nav button,
+    .btn {
+      background: var(--y);
+      color: #111;
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-weight: 600;
+      cursor: pointer
+    }
+
+    nav button {
+      background: transparent;
+      color: #fff
+    }
+
+    nav button.on {
+      background: #fff3;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 16px auto;
+      padding: 0 12px
+    }
+
+    .card {
+      background: var(--c);
+      border: 1px solid var(--b);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+      overflow-x: auto
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 9px;
+      border: 1px solid var(--b);
+      border-radius: 8px;
+      background: var(--c);
+      color: var(--t);
+      font: inherit;
+      margin: 4px 0
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid var(--b);
+      white-space: nowrap
+    }
+
+    td input {
+      width: 90px;
+      margin: 0
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px
+    }
+
+    .stat {
+      font-size: 22px;
+      font-weight: 700
+    }
+
+    .m {
+      color: var(--m)
+    }
+
+    .low {
+      color: #d33;
+      font-weight: 700
+    }
+
+    .msg {
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: #0E6B6322
+    }
+
+    .err {
+      background: #d3333322
+    }
+
+    .auth {
+      max-width: 380px;
+      margin: 40px auto
+    }
+
+    .link {
+      color: var(--g);
+      cursor: pointer;
+      text-decoration: underline
+    }
+  </style>
+</head>
+
+<body>
+  <header><b>💊 MedSupply Uganda</b>
+    <nav id="nav"></nav>
+  </header>
+  <main id="app"></main>
+  <script>
+    // ===== CONFIG: Supabase > Project Settings > API (anon key is public by design; RLS protects data) =====
+    const SUPABASE_URL = "https://dcpvdapxzkaahyhpflul.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_SiQMwIgDgLmckNQHUmO3SA_78UQBLHf";
+    // =======================================================================================================
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const $ = s => document.querySelector(s);
+    const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+    const ugx = n => "UGX " + Math.round(+n || 0).toLocaleString();
+    let me = null, profile = null, products = [], cart = {}, view = "shop", signup = false;
+
+    function say(msg, bad) {const d = document.createElement("div"); d.className = "msg" + (bad ? " err" : ""); d.textContent = msg; $("#app").prepend(d); setTimeout(() => d.remove(), 6000);}
+
+    async function boot() {
+      const {data} = await sb.auth.getSession();
+      me = data.session?.user || null;
+      sb.auth.onAuthStateChange((_e, s) => {const u = s?.user || null; if ((u?.id) !== (me?.id)) {me = u; boot();} });
+      if (me) {const r = await sb.from("profiles").select("*").eq("id", me.id).single(); profile = r.data;}
+      nav(); go(me ? view : "auth");
+    }
+    function nav() {
+      const n = $("#nav");
+      if (!me) {n.innerHTML = ""; return;}
+      const tabs = [["shop", "Shop"], ["orders", "My orders"]].concat(profile?.role === "admin" ? [["admin", "Admin"]] : []);
+      n.innerHTML = tabs.map(([k, l]) => `<button class="${view === k ? "on" : ""}" data-v="${k}">${l}</button>`).join("") + `<button id="out">Sign out</button>`;
+      n.querySelectorAll("[data-v]").forEach(b => b.onclick = () => go(b.dataset.v));
+      $("#out").onclick = async () => {await sb.auth.signOut(); cart = {};};
+    }
+    function go(v) {view = v; nav(); ({auth: vAuth, shop: vShop, orders: vOrders, admin: vAdmin})[v]();}
+
+    // ---------- Auth ----------
+    function vAuth() {
+      $("#app").innerHTML = `<div class="card auth"><h2>${signup ? "Register your shop" : "Sign in"}</h2>
+  ${signup ? `<input id="bn" placeholder="Business name"><input id="ph" placeholder="Phone (2567...)">` : ""}
+  <input id="em" type="email" placeholder="Email"><input id="pw" type="password" placeholder="Password (min 8 chars)">
+  <button class="btn" id="go" style="width:100%;margin-top:8px">${signup ? "Create account" : "Sign in"}</button>
+  <p class="m"><span class="link" id="sw">${signup ? "Have an account? Sign in" : "New shop? Register"}</span>
+  ${signup ? "" : ` · <span class="link" id="fp">Forgot password</span>`}</p></div>`;
+      $("#sw").onclick = () => {signup = !signup; vAuth();};
+      if ($("#fp")) $("#fp").onclick = async () => {const e = $("#em").value; if (!e) return say("Enter your email first", 1); const {error} = await sb.auth.resetPasswordForEmail(e, {redirectTo: location.origin}); say(error ? error.message : "Reset link sent", !!error);};
+      $("#go").onclick = async () => {
+        const email = $("#em").value.trim(), password = $("#pw").value;
+        const r = signup ? await sb.auth.signUp({email, password, options: {data: {business_name: $("#bn").value, phone: $("#ph").value}}})
+          : await sb.auth.signInWithPassword({email, password});
+        if (r.error) return say(r.error.message, 1);
+        if (signup && !r.data.session) say("Account created. Check your email to confirm, then sign in.");
+      };
+    }
+
+    // ---------- Shop ----------
+    async function vShop() {
+      const r = await sb.from("products").select("*").order("name"); products = r.data || [];
+      $("#app").innerHTML = `<div class="card"><input id="q" placeholder="Search medicines..."></div>
+  <div class="card"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Expiry</th><th>Qty</th></tr></thead><tbody id="rows"></tbody></table></div>
+  <div class="card" id="cart"></div>`;
+      const draw = () => {
+        const f = $("#q").value.toLowerCase();
+        $("#rows").innerHTML = products.filter(p => p.name.toLowerCase().includes(f)).map(p => `<tr><td>${esc(p.name)}</td><td>${esc(p.category)}</td><td>${ugx(p.price)}</td>
+      <td class="${p.stock <= p.reorder_level ? "low" : ""}">${p.stock}</td><td>${esc(p.expiry)}</td>
+      <td><input type="number" min="0" max="${p.stock}" value="${cart[p.id] || 0}" data-id="${p.id}"></td></tr>`).join("");
+        document.querySelectorAll("#rows input").forEach(i => i.onchange = () => {const v = Math.max(0, parseInt(i.value) || 0); v ? cart[i.dataset.id] = v : delete cart[i.dataset.id]; drawCart();});
+      };
+      $("#q").oninput = draw; draw(); drawCart();
+    }
+    function drawCart() {
+      const lines = Object.entries(cart).map(([id, q]) => ({p: products.find(x => x.id === id), q})).filter(l => l.p);
+      const total = lines.reduce((s, l) => s + l.p.price * l.q, 0);
+      $("#cart").innerHTML = lines.length ? `<h3>Your order</h3>${lines.map(l => `<div>${esc(l.p.name)} × ${l.q} — ${ugx(l.p.price * l.q)}</div>`).join("")}
+  <p class="stat">${ugx(total)}</p>
+  <div class="grid"><input id="rn" placeholder="Recipient name" value="${esc(profile?.business_name)}"><input id="rp" placeholder="Phone" value="${esc(profile?.phone)}">
+  <input id="ra" placeholder="Delivery address" value="${esc(profile?.address)}">
+  <select id="pm"><option>Mobile Money</option><option>Cash on Delivery</option><option>Trade Credit</option></select></div>
+  <textarea id="nt" placeholder="Notes (optional)"></textarea><button class="btn" id="place">Place order</button>`
+        : `<span class="m">Cart is empty. Enter quantities above.</span>`;
+      if (!lines.length) return;
+      $("#place").onclick = async () => {
+        const name = $("#rn").value.trim(), phone = $("#rp").value.trim(), addr = $("#ra").value.trim();
+        if (!name || !phone || !addr) return say("Fill in name, phone and address", 1);
+        const items = Object.entries(cart).map(([id, qty]) => ({id, qty}));
+        const {data, error} = await sb.rpc("place_order", {p_items: items, p_name: name, p_phone: phone, p_address: addr, p_method: $("#pm").value, p_notes: $("#nt").value});
+        if (error) return say(error.message, 1);
+        await sb.from("profiles").update({business_name: profile?.business_name || name, phone, address: addr}).eq("id", me.id);
+        cart = {}; go("orders"); say(`Order #${data} placed.`);
+      };
+    }
+
+    // ---------- Orders ----------
+    async function vOrders() {
+      const {data} = await sb.from("orders").select("*").order("created_at", {ascending: false});
+      $("#app").innerHTML = `<div class="card"><h3>My orders</h3>${tbl(data || [])}</div>`;
+    }
+    const tbl = (o) => o.length ? `<table><thead><tr><th>#</th><th>Date</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead><tbody>${o.map(r =>
+      `<tr><td>${r.id}</td><td>${new Date(r.created_at).toLocaleDateString()}</td><td>${r.items.map(i => esc(i.name) + " ×" + i.qty).join(", ")}</td><td>${ugx(r.total)}</td><td>${esc(r.payment_status)}</td><td>${esc(r.status)}</td></tr>`).join("")}</tbody></table>` : `<span class="m">No orders yet.</span>`;
+
+    // ---------- Admin ----------
+    async function vAdmin() {
+      const [o, p] = await Promise.all([sb.from("orders").select("*").order("created_at", {ascending: false}), sb.from("products").select("*").order("id")]);
+      const orders = o.data || [], prods = p.data || [];
+      const rev = orders.filter(x => x.status !== "Cancelled").reduce((s, x) => s + +x.total, 0);
+      const S = ["Processing", "Dispatched", "Delivered", "Cancelled"], P = ["Pending Payment", "Paid", "On Credit", "Pay on Delivery"];
+      const opt = (a, v) => a.map(x => `<option ${x === v ? "selected" : ""}>${x}</option>`).join("");
+      $("#app").innerHTML = `<div class="grid"><div class="card">Orders<div class="stat">${orders.length}</div></div><div class="card">Revenue<div class="stat">${ugx(rev)}</div></div>
+  <div class="card">Low stock<div class="stat low">${prods.filter(x => x.stock <= x.reorder_level).length}</div></div></div>
+  <div class="card"><h3>Orders</h3><table><thead><tr><th>#</th><th>Customer</th><th>Phone</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead><tbody>${orders.map(r =>
+        `<tr><td>${r.id}</td><td>${esc(r.recipient_name)}</td><td>${esc(r.phone)}</td><td>${r.items.map(i => esc(i.name) + " ×" + i.qty).join(", ")}</td><td>${ugx(r.total)}</td>
+    <td><select data-o="${r.id}" data-f="payment_status">${opt(P, r.payment_status)}</select></td><td><select data-o="${r.id}" data-f="status">${opt(S, r.status)}</select></td></tr>`).join("")}</tbody></table></div>
+  <div class="card"><h3>Inventory</h3><table><thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Stock</th><th>Reorder</th><th></th></tr></thead><tbody>${prods.map(x =>
+          `<tr><td>${esc(x.id)}</td><td>${esc(x.name)}</td><td><input type="number" value="${x.price}" data-p="${x.id}" data-f="price"></td><td><input type="number" value="${x.stock}" data-p="${x.id}" data-f="stock"></td>
+    <td><input type="number" value="${x.reorder_level}" data-p="${x.id}" data-f="reorder_level"></td><td><button class="btn" data-save="${x.id}">Save</button></td></tr>`).join("")}</tbody></table></div>
+  <div class="card"><h3>Add product</h3><div class="grid"><input id="nid" placeholder="ID e.g. INV-009"><input id="nn" placeholder="Name"><input id="nc" placeholder="Category">
+  <input id="npr" type="number" placeholder="Price"><input id="nst" type="number" placeholder="Stock"><input id="nex" type="date"></div><button class="btn" id="add">Add product</button></div>`;
+      document.querySelectorAll("[data-o]").forEach(s => s.onchange = async () => {const {error} = await sb.from("orders").update({[s.dataset.f]: s.value}).eq("id", s.dataset.o); say(error ? error.message : "Order updated", !!error);});
+      document.querySelectorAll("[data-save]").forEach(b => b.onclick = async () => {
+        const id = b.dataset.save, v = {}; document.querySelectorAll(`[data-p="${id}"]`).forEach(i => v[i.dataset.f] = +i.value);
+        const {error} = await sb.from("products").update(v).eq("id", id); say(error ? error.message : "Saved", !!error);
+      });
+      $("#add").onclick = async () => {
+        const {error} = await sb.from("products").insert({id: $("#nid").value.trim(), name: $("#nn").value.trim(), category: $("#nc").value.trim(), price: +$("#npr").value, stock: +$("#nst").value, expiry: $("#nex").value || null});
+        if (error) return say(error.message, 1); vAdmin();
+      };
+    }
+    boot();
+  </script>
+</body>
+
+</html>
