@@ -1,1303 +1,366 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>MedSupply Uganda | B2B Pharma Marketplace</title>
-  <link rel="icon"
-    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <style>
-    :root {
-      --bg: #f3f6f5;
-      --ink: #0f2a2e;
-      --m: #5d7378;
-      --side: #0f2529;
-      --teal: #0e6b63;
-      --teal2: #14a094;
-      --acc: #f5b301;
-      --red: #d1342a;
-      --card: #fff;
-      --line: #e3eceb;
-      --sh: 0 1px 2px #0b2a2d14, 0 8px 24px #0b2a2d0d
-    }
-
-    * {
-      box-sizing: border-box
-    }
-
-    html {
-      scroll-behavior: smooth
-    }
-
-    body {
-      margin: 0;
-      font: 15px/1.5 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--ink)
-    }
-
-    a {
-      cursor: pointer;
-      color: var(--teal)
-    }
-
-    h1,
-    h2,
-    h3 {
-      margin: .2em 0 .5em;
-      letter-spacing: -.02em
-    }
-
-    h1 {
-      font-size: 2rem
-    }
-
-    #shell {
-      display: grid;
-      grid-template-columns: 270px 1fr;
-      min-height: 100vh
-    }
-
-    #side {
-      background: linear-gradient(180deg, #112d31, #0b1c1f);
-      color: #e7f1f0;
-      padding: 22px 16px;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      z-index: 40
-    }
-
-    .brand {
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: #fff;
-      cursor: pointer
-    }
-
-    .tag {
-      color: #8fa9ad;
-      font-size: .85rem
-    }
-
-    .who {
-      background: #ffffff0f;
-      border-radius: 12px;
-      padding: 12px;
-      font-size: .9rem
-    }
-
-    .who b {
-      display: block;
-      font-size: 1rem
-    }
-
-    .nav {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-top: 6px
-    }
-
-    .nav a {
-      color: #cfe0e0;
-      padding: 11px 12px;
-      border-radius: 10px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      border-left: 3px solid transparent;
-      transition: .2s;
-      text-decoration: none
-    }
-
-    .nav a:hover {
-      background: #ffffff12;
-      transform: translateX(3px)
-    }
-
-    .nav a.on {
-      background: #ffffff1c;
-      border-left-color: var(--acc);
-      color: #fff;
-      font-weight: 600
-    }
-
-    .nav .bd {
-      margin-left: auto;
-      background: var(--acc);
-      color: #222;
-      border-radius: 9px;
-      padding: 0 7px;
-      font-size: .75rem;
-      font-weight: 700
-    }
-
-    .lo {
-      margin-top: auto
-    }
-
-    .btn {
-      border: 0;
-      border-radius: 10px;
-      padding: 10px 16px;
-      font: inherit;
-      font-weight: 600;
-      cursor: pointer;
-      background: var(--teal);
-      color: #fff;
-      transition: .2s
-    }
-
-    .btn:hover {
-      background: #0b574f;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 14px #0e6b6333
-    }
-
-    .btn:disabled {
-      background: #cfd9d8;
-      color: #7d8f92;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none
-    }
-
-    .btn.acc {
-      background: var(--acc);
-      color: #2a2000
-    }
-
-    .btn.acc:hover {
-      background: #e0a200
-    }
-
-    .btn.o {
-      background: transparent;
-      border: 1px solid #ffffff44;
-      color: #fff;
-      width: 100%
-    }
-
-    .btn.l {
-      background: #fff;
-      color: var(--ink);
-      border: 1px solid var(--line)
-    }
-
-    .btn.l:hover {
-      background: #f0f6f5
-    }
-
-    .btn.r {
-      background: var(--red)
-    }
-
-    .btn.sm {
-      padding: 6px 11px;
-      font-size: .85rem
-    }
-
-    #top {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      justify-content: flex-end;
-      padding: 12px 28px;
-      position: sticky;
-      top: 0;
-      background: #f3f6f5ee;
-      backdrop-filter: blur(8px);
-      z-index: 30
-    }
-
-    #mb {
-      display: none;
-      margin-right: auto
-    }
-
-    #cb {
-      position: relative
-    }
-
-    #cc {
-      background: var(--acc);
-      color: #222;
-      border-radius: 10px;
-      padding: 0 7px;
-      margin-left: 6px;
-      font-size: .78rem
-    }
-
-    main {
-      max-width: 1180px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 6px 28px 60px
-    }
-
-    main>* {
-      animation: rise .45s both
-    }
-
-    @keyframes rise {
-      from {
-        opacity: 0;
-        transform: translateY(14px)
-      }
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 18px;
-      box-shadow: var(--sh);
-      margin-bottom: 16px
-    }
-
-    .hero {
-      background: radial-gradient(120% 140% at 100% 0, #14a09455, transparent 55%), linear-gradient(135deg, #0c4a4a, #0e3438);
-      color: #fff;
-      border-radius: 20px;
-      padding: 30px 32px;
-      border-left: 7px solid var(--acc);
-      position: relative;
-      overflow: hidden;
-      margin-bottom: 16px
-    }
-
-    .hero h1 {
-      font-size: 2.3rem;
-      max-width: 620px
-    }
-
-    .hero p {
-      color: #c3dcdb;
-      max-width: 560px
-    }
-
-    .hero .em {
-      position: absolute;
-      right: 28px;
-      top: 14px;
-      font-size: 96px;
-      animation: fl 4s ease-in-out infinite
-    }
-
-    @keyframes fl {
-      50% {
-        transform: translateY(-10px) rotate(8deg)
-      }
-    }
-
-    .chips {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap
-    }
-
-    .chip {
-      background: #ffffff1c;
-      border-radius: 10px;
-      padding: 7px 12px;
-      font-size: .88rem
-    }
-
-    .tick {
-      background: #e0f1ec;
-      color: #0b5a52;
-      border-radius: 12px;
-      overflow: hidden;
-      white-space: nowrap;
-      margin-bottom: 16px;
-      padding: 10px 0
-    }
-
-    .tick span {
-      display: inline-block;
-      padding-left: 100%;
-      animation: mq 28s linear infinite
-    }
-
-    @keyframes mq {
-      to {
-        transform: translateX(-100%)
-      }
-    }
-
-    .tools {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-bottom: 14px
-    }
-
-    .tools input,
-    .tools select {
-      flex: 1;
-      min-width: 150px
-    }
-
-    input,
-    select,
-    textarea {
-      width: 100%;
-      padding: 11px 13px;
-      border: 1px solid var(--line);
-      background: #f1f5f9;
-      border-radius: 10px;
-      font: inherit;
-      color: var(--ink);
-      transition: .2s;
-      margin: 4px 0
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      outline: 0;
-      border-color: var(--teal2);
-      box-shadow: 0 0 0 3px #14a09433;
-      background: #fff
-    }
-
-    .tg {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      font-size: .92rem;
-      white-space: nowrap
-    }
-
-    .tg input {
-      width: auto;
-      margin: 0
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
-      gap: 16px
-    }
-
-    .pc {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      position: relative;
-      box-shadow: var(--sh);
-      transition: .25s;
-      animation: rise .45s both;
-      animation-delay: calc(var(--i)*40ms)
-    }
-
-    .pc:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 14px 30px #0b2a2d22
-    }
-
-    .im {
-      height: 130px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #e8f4f1, #f7fbfa);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 56px;
-      overflow: hidden
-    }
-
-    .im img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain
-    }
-
-    .nm {
-      font-weight: 650;
-      min-height: 42px
-    }
-
-    .pr {
-      font-size: 1.15rem;
-      font-weight: 800
-    }
-
-    .pr s {
-      font-size: .8rem;
-      color: #98a8ab;
-      font-weight: 400;
-      margin-left: 5px
-    }
-
-    .dis {
-      position: absolute;
-      top: 18px;
-      left: 18px;
-      background: var(--red);
-      color: #fff;
-      font-weight: 700;
-      border-radius: 8px;
-      padding: 1px 8px;
-      font-size: .78rem
-    }
-
-    .fv {
-      position: absolute;
-      top: 14px;
-      right: 16px;
-      background: #fff;
-      border: 0;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      cursor: pointer;
-      font-size: 17px;
-      box-shadow: var(--sh)
-    }
-
-    .st {
-      font-size: .8rem;
-      color: var(--teal)
-    }
-
-    .st.low {
-      color: #b86e00
-    }
-
-    .st.out {
-      color: var(--red)
-    }
-
-    .mt {
-      font-size: .75rem;
-      color: var(--m)
-    }
-
-    .step {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #e6f3f1;
-      border-radius: 10px;
-      overflow: hidden
-    }
-
-    .step button {
-      background: var(--teal);
-      color: #fff;
-      border: 0;
-      width: 40px;
-      height: 40px;
-      font-size: 18px;
-      cursor: pointer
-    }
-
-    .step span {
-      font-weight: 700
-    }
-
-    .kp {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 14px;
-      margin: 14px 0
-    }
-
-    .k {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-top: 4px solid var(--teal);
-      border-radius: 14px;
-      padding: 14px 16px;
-      box-shadow: var(--sh);
-      transition: .2s
-    }
-
-    .k:hover {
-      transform: translateY(-3px)
-    }
-
-    .k.y {
-      border-top-color: var(--acc)
-    }
-
-    .k.r {
-      border-top-color: var(--red)
-    }
-
-    .k small {
-      color: var(--m)
-    }
-
-    .k b {
-      display: block;
-      font-size: 1.65rem;
-      line-height: 1.2
-    }
-
-    .two {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 16px;
-      align-items: start
-    }
-
-    .rad {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin: 8px 0
-    }
-
-    .rad label {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 6px 14px;
-      cursor: pointer;
-      font-size: .9rem;
-      transition: .2s
-    }
-
-    .rad label:hover {
-      border-color: var(--teal2)
-    }
-
-    .rad input {
-      display: none
-    }
-
-    .rad label.on {
-      background: var(--teal);
-      color: #fff;
-      border-color: var(--teal)
-    }
-
-    .ch {
-      width: 100%;
-      height: 200px;
-      display: block
-    }
-
-    .ax {
-      display: flex;
-      justify-content: space-between;
-      color: var(--m);
-      font-size: .78rem
-    }
-
-    .bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 8px 0;
-      font-size: .9rem
-    }
-
-    .bar i {
-      flex: 1;
-      height: 10px;
-      background: #edf3f2;
-      border-radius: 6px;
-      overflow: hidden
-    }
-
-    .bar u {
-      display: block;
-      height: 100%;
-      background: linear-gradient(90deg, var(--teal), var(--teal2));
-      border-radius: 6px;
-      transition: width .8s
-    }
-
-    .bar span {
-      width: 100px
-    }
-
-    .tabs {
-      display: flex;
-      gap: 4px;
-      border-bottom: 2px solid var(--line);
-      margin-bottom: 16px;
-      overflow: auto
-    }
-
-    .tabs a {
-      padding: 9px 14px;
-      color: var(--ink);
-      text-decoration: none;
-      border-bottom: 3px solid transparent;
-      margin-bottom: -2px;
-      white-space: nowrap
-    }
-
-    .tabs a.on {
-      color: var(--red);
-      border-color: var(--red);
-      font-weight: 600
-    }
-
-    .empty {
-      border: 2px dashed #cdd9d8;
-      border-radius: 18px;
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--m)
-    }
-
-    .empty .e {
-      font-size: 3rem
-    }
-
-    .empty h2 {
-      color: var(--ink)
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse
-    }
-
-    th,
-    td {
-      text-align: left;
-      padding: 9px;
-      border-bottom: 1px solid var(--line);
-      white-space: nowrap
-    }
-
-    th {
-      color: var(--m);
-      font-size: .8rem;
-      text-transform: uppercase;
-      letter-spacing: .04em
-    }
-
-    td input {
-      width: 90px;
-      margin: 0;
-      padding: 6px
-    }
-
-    .sc {
-      overflow-x: auto
-    }
-
-    tr.lw {
-      background: #fff6e0
-    }
-
-    .trk {
-      display: flex;
-      gap: 6px;
-      margin: 12px 0
-    }
-
-    .trk div {
-      flex: 1;
-      text-align: center;
-      padding: 7px;
-      background: #eaf0ef;
-      border-radius: 8px;
-      font-size: .8rem;
-      color: var(--m);
-      transition: .3s
-    }
-
-    .trk .done {
-      background: var(--teal);
-      color: #fff
-    }
-
-    .trk .x {
-      background: var(--red);
-      color: #fff
-    }
-
-    .row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 5px 0;
-      align-items: center;
-      flex-wrap: wrap
-    }
-
-    .m {
-      color: var(--m)
-    }
-
-    .pill {
-      display: inline-block;
-      border-radius: 999px;
-      padding: 2px 10px;
-      font-size: .78rem;
-      font-weight: 600;
-      background: #e6f3f1;
-      color: var(--teal)
-    }
-
-    .pill.y {
-      background: #fff3cc;
-      color: #8a6200
-    }
-
-    .pill.r {
-      background: #fde5e3;
-      color: var(--red)
-    }
-
-    .live {
-      display: inline-block;
-      width: 11px;
-      height: 11px;
-      border-radius: 50%;
-      background: #22c55e;
-      margin-right: 8px;
-      animation: pl 1.6s infinite
-    }
-
-    @keyframes pl {
-      0% {
-        box-shadow: 0 0 0 0 #22c55e88
-      }
-
-      100% {
-        box-shadow: 0 0 0 12px #22c55e00
-      }
-    }
-
-    .pay label.o {
-      display: block;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-      margin: 8px 0;
-      cursor: pointer;
-      transition: .2s
-    }
-
-    .pay label.o:hover {
-      border-color: var(--teal2);
-      background: #f5fbfa
-    }
-
-    .pay label.o input {
-      width: auto;
-      margin-right: 8px
-    }
-
-    #dr {
-      position: fixed;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      width: min(400px, 100%);
-      background: #fff;
-      z-index: 60;
-      transform: translateX(105%);
-      transition: .35s;
-      padding: 18px;
-      overflow: auto;
-      box-shadow: -10px 0 40px #0004
-    }
-
-    #dr.on {
-      transform: none
-    }
-
-    #ov {
-      position: fixed;
-      inset: 0;
-      background: #0a1f2288;
-      opacity: 0;
-      pointer-events: none;
-      transition: .3s;
-      z-index: 50
-    }
-
-    #ov.on {
-      opacity: 1;
-      pointer-events: auto
-    }
-
-    .th {
-      display: inline-block;
-      width: 30px;
-      text-align: center
-    }
-
-    .th img {
-      width: 28px;
-      height: 28px;
-      object-fit: contain;
-      vertical-align: middle
-    }
-
-    #toast {
-      position: fixed;
-      left: 50%;
-      bottom: 26px;
-      transform: translate(-50%, 90px);
-      background: #0f2a2e;
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: 12px;
-      z-index: 99;
-      transition: .35s;
-      max-width: 90%;
-      box-shadow: 0 10px 30px #0006
-    }
-
-    #toast.show {
-      transform: translate(-50%, 0)
-    }
-
-    #toast.bad {
-      background: var(--red)
-    }
-
-    .sk {
-      height: 260px;
-      border-radius: 16px;
-      background: linear-gradient(90deg, #e8eeed 25%, #f6f9f8 50%, #e8eeed 75%);
-      background-size: 200% 100%;
-      animation: sh 1.2s infinite
-    }
-
-    @keyframes sh {
-      to {
-        background-position: -200% 0
-      }
-    }
-
-    .auth {
-      max-width: 480px;
-      margin: 20px auto
-    }
-
-    .auth .btn {
-      width: 100%;
-      margin-top: 8px
-    }
-
-    .chat {
-      height: 360px;
-      overflow: auto;
-      padding: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px
-    }
-
-    .msg {
-      display: flex;
-      gap: 10px;
-      max-width: 88%;
-      animation: rise .3s
-    }
-
-    .msg.u {
-      align-self: flex-end;
-      flex-direction: row-reverse
-    }
-
-    .msg .av {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: var(--acc);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex: none
-    }
-
-    .msg.u .av {
-      background: var(--teal)
-    }
-
-    .msg .bb {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 9px 14px
-    }
-
-    .msg.u .bb {
-      background: var(--teal);
-      color: #fff
-    }
-
-    .sug {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin: 10px 0
-    }
-
-    .bank td:first-child {
-      color: var(--m);
-      width: 40%
-    }
-
-    .copy {
-      cursor: pointer;
-      border: 1px dashed var(--teal2);
-      padding: 2px 8px;
-      border-radius: 8px;
-      font-weight: 700
-    }
-
-    @media(max-width:900px) {
-      #shell {
-        grid-template-columns: 1fr
-      }
-
-      #side {
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 270px;
-        transform: translateX(-105%);
-        transition: .3s
-      }
-
-      #side.on {
-        transform: none
-      }
-
-      #mb {
-        display: inline-block
-      }
-
-      .two {
-        grid-template-columns: 1fr
-      }
-
-      main {
-        padding: 6px 14px 60px
-      }
-
-      #top {
-        padding: 10px 14px
-      }
-
-      .hero .em {
-        display: none
-      }
-
-      .hero h1 {
-        font-size: 1.7rem
-      }
-    }
-
-    @media print {
-
-      #side,
-      #top {
-        display: none
-      }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MedSupply Uganda | B2B Pharma Marketplace</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#f3f6f5;--ink:#0f2a2e;--m:#5d7378;--side:#0f2529;--teal:#0e6b63;--teal2:#14a094;--acc:#f5b301;--red:#d1342a;--card:#fff;--line:#e3eceb;--sh:0 1px 2px #0b2a2d14,0 8px 24px #0b2a2d0d}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font:15px/1.5 "Inter",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+a{cursor:pointer;color:var(--teal)}h1,h2,h3{margin:.2em 0 .5em;letter-spacing:-.02em}h1{font-size:2rem}
+#shell{display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+#side{background:linear-gradient(180deg,#112d31,#0b1c1f);color:#e7f1f0;padding:22px 16px;position:sticky;top:0;height:100vh;overflow:auto;display:flex;flex-direction:column;gap:14px;z-index:40}
+.brand{font-size:1.3rem;font-weight:800;color:#fff;cursor:pointer}.tag{color:#8fa9ad;font-size:.85rem}
+.who{background:#ffffff0f;border-radius:12px;padding:12px;font-size:.9rem}.who b{display:block;font-size:1rem}
+.nav{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.nav a{color:#cfe0e0;padding:11px 12px;border-radius:10px;display:flex;gap:10px;align-items:center;border-left:3px solid transparent;transition:.2s;text-decoration:none}
+.nav a:hover{background:#ffffff12;transform:translateX(3px)}.nav a.on{background:#ffffff1c;border-left-color:var(--acc);color:#fff;font-weight:600}
+.nav .bd{margin-left:auto;background:var(--acc);color:#222;border-radius:9px;padding:0 7px;font-size:.75rem;font-weight:700}
+.lo{margin-top:auto}.btn{border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;background:var(--teal);color:#fff;transition:.2s}
+.btn:hover{background:#0b574f;transform:translateY(-1px);box-shadow:0 6px 14px #0e6b6333}.btn:disabled{background:#cfd9d8;color:#7d8f92;cursor:not-allowed;transform:none;box-shadow:none}
+.btn.acc{background:var(--acc);color:#2a2000}.btn.acc:hover{background:#e0a200}.btn.o{background:transparent;border:1px solid #ffffff44;color:#fff;width:100%}.btn.l{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn.l:hover{background:#f0f6f5}.btn.r{background:var(--red)}.btn.sm{padding:6px 11px;font-size:.85rem}
+#top{display:flex;gap:10px;align-items:center;justify-content:flex-end;padding:12px 28px;position:sticky;top:0;background:#f3f6f5ee;backdrop-filter:blur(8px);z-index:30}
+#mb{display:none;margin-right:auto}#cb{position:relative}#cc{background:var(--acc);color:#222;border-radius:10px;padding:0 7px;margin-left:6px;font-size:.78rem}
+main{max-width:1180px;width:100%;margin:0 auto;padding:6px 28px 60px}
+main>*{animation:rise .45s both}@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--sh);margin-bottom:16px}
+.hero{background:radial-gradient(120% 140% at 100% 0,#14a09455,transparent 55%),linear-gradient(135deg,#0c4a4a,#0e3438);color:#fff;border-radius:20px;padding:30px 32px;border-left:7px solid var(--acc);position:relative;overflow:hidden;margin-bottom:16px}
+.hero h1{font-size:2.3rem;max-width:620px}.hero p{color:#c3dcdb;max-width:560px}.hero .em{position:absolute;right:28px;top:14px;font-size:96px;animation:fl 4s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-10px) rotate(8deg)}}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{background:#ffffff1c;border-radius:10px;padding:7px 12px;font-size:.88rem}
+.tick{background:#e0f1ec;color:#0b5a52;border-radius:12px;overflow:hidden;white-space:nowrap;margin-bottom:16px;padding:10px 0}.tick span{display:inline-block;padding-left:100%;animation:mq 28s linear infinite}@keyframes mq{to{transform:translateX(-100%)}}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.tools input,.tools select{flex:1;min-width:150px}
+input,select,textarea{width:100%;padding:11px 13px;border:1px solid var(--line);background:#f1f5f9;border-radius:10px;font:inherit;color:var(--ink);transition:.2s;margin:4px 0}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--teal2);box-shadow:0 0 0 3px #14a09433;background:#fff}
+.tg{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:.92rem;white-space:nowrap}.tg input{width:auto;margin:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:16px}
+.pc{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px;position:relative;box-shadow:var(--sh);transition:.25s;animation:rise .45s both;animation-delay:calc(var(--i)*40ms)}
+.pc:hover{transform:translateY(-5px);box-shadow:0 14px 30px #0b2a2d22}
+.im{height:130px;border-radius:12px;background:linear-gradient(135deg,#e8f4f1,#f7fbfa);display:flex;align-items:center;justify-content:center;font-size:56px;overflow:hidden}.im img{width:100%;height:100%;object-fit:contain}
+.nm{font-weight:650;min-height:42px}.pr{font-size:1.15rem;font-weight:800}.pr s{font-size:.8rem;color:#98a8ab;font-weight:400;margin-left:5px}
+.dis{position:absolute;top:18px;left:18px;background:var(--red);color:#fff;font-weight:700;border-radius:8px;padding:1px 8px;font-size:.78rem}
+.fv{position:absolute;top:14px;right:16px;background:#fff;border:0;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:17px;box-shadow:var(--sh)}
+.st{font-size:.8rem;color:var(--teal)}.st.low{color:#b86e00}.st.out{color:var(--red)}.mt{font-size:.75rem;color:var(--m)}
+.step{display:flex;align-items:center;justify-content:space-between;background:#e6f3f1;border-radius:10px;overflow:hidden}.step button{background:var(--teal);color:#fff;border:0;width:40px;height:40px;font-size:18px;cursor:pointer}.step span{font-weight:700}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:14px 0}
+.k{background:#fff;border:1px solid var(--line);border-top:4px solid var(--teal);border-radius:14px;padding:14px 16px;box-shadow:var(--sh);transition:.2s}.k:hover{transform:translateY(-3px)}.k.y{border-top-color:var(--acc)}.k.r{border-top-color:var(--red)}
+.k small{color:var(--m)}.k b{display:block;font-size:1.65rem;line-height:1.2}
+.two{display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:start}
+.rad{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.rad label{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:.9rem;transition:.2s}.rad label:hover{border-color:var(--teal2)}.rad input{display:none}.rad label.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.ch{width:100%;height:200px;display:block}.ax{display:flex;justify-content:space-between;color:var(--m);font-size:.78rem}
+.bar{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:.9rem}.bar i{flex:1;height:10px;background:#edf3f2;border-radius:6px;overflow:hidden}.bar u{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--teal2));border-radius:6px;transition:width .8s}.bar span{width:100px}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:16px;overflow:auto}.tabs a{padding:9px 14px;color:var(--ink);text-decoration:none;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}.tabs a.on{color:var(--red);border-color:var(--red);font-weight:600}
+.empty{border:2px dashed #cdd9d8;border-radius:18px;text-align:center;padding:40px 20px;color:var(--m)}.empty .e{font-size:3rem}.empty h2{color:var(--ink)}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:9px;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--m);font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}td input{width:90px;margin:0;padding:6px}.sc{overflow-x:auto}tr.lw{background:#fff6e0}
+.trk{display:flex;gap:6px;margin:12px 0}.trk div{flex:1;text-align:center;padding:7px;background:#eaf0ef;border-radius:8px;font-size:.8rem;color:var(--m);transition:.3s}.trk .done{background:var(--teal);color:#fff}.trk .x{background:var(--red);color:#fff}
+.row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;align-items:center;flex-wrap:wrap}.m{color:var(--m)}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:600;background:#e6f3f1;color:var(--teal)}.pill.y{background:#fff3cc;color:#8a6200}.pill.r{background:#fde5e3;color:var(--red)}
+.live{display:inline-block;width:11px;height:11px;border-radius:50%;background:#22c55e;margin-right:8px;animation:pl 1.6s infinite}@keyframes pl{0%{box-shadow:0 0 0 0 #22c55e88}100%{box-shadow:0 0 0 12px #22c55e00}}
+.pay label.o{display:block;border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0;cursor:pointer;transition:.2s}.pay label.o:hover{border-color:var(--teal2);background:#f5fbfa}.pay label.o input{width:auto;margin-right:8px}
+#dr{position:fixed;right:0;top:0;bottom:0;width:min(400px,100%);background:#fff;z-index:60;transform:translateX(105%);transition:.35s;padding:18px;overflow:auto;box-shadow:-10px 0 40px #0004}#dr.on{transform:none}
+#ov{position:fixed;inset:0;background:#0a1f2288;opacity:0;pointer-events:none;transition:.3s;z-index:50}#ov.on{opacity:1;pointer-events:auto}
+.th{display:inline-block;width:30px;text-align:center}.th img{width:28px;height:28px;object-fit:contain;vertical-align:middle}
+#toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,90px);background:#0f2a2e;color:#fff;padding:12px 20px;border-radius:12px;z-index:99;transition:.35s;max-width:90%;box-shadow:0 10px 30px #0006}#toast.show{transform:translate(-50%,0)}#toast.bad{background:var(--red)}
+.sk{height:260px;border-radius:16px;background:linear-gradient(90deg,#e8eeed 25%,#f6f9f8 50%,#e8eeed 75%);background-size:200% 100%;animation:sh 1.2s infinite}@keyframes sh{to{background-position:-200% 0}}
+.auth{max-width:480px;margin:20px auto}.auth .btn{width:100%;margin-top:8px}
+.chat{height:360px;overflow:auto;padding:6px;display:flex;flex-direction:column;gap:12px}.msg{display:flex;gap:10px;max-width:88%;animation:rise .3s}.msg.u{align-self:flex-end;flex-direction:row-reverse}
+.msg .av{width:36px;height:36px;border-radius:10px;background:var(--acc);display:flex;align-items:center;justify-content:center;flex:none}.msg.u .av{background:var(--teal)}.msg .bb{background:#fff;border:1px solid var(--line);border-radius:14px;padding:9px 14px}.msg.u .bb{background:var(--teal);color:#fff}
+.sug{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.bank td:first-child{color:var(--m);width:40%}
+.copy{cursor:pointer;border:1px dashed var(--teal2);padding:2px 8px;border-radius:8px;font-weight:700}
+@media(max-width:900px){#shell{grid-template-columns:1fr}#side{position:fixed;left:0;top:0;width:270px;transform:translateX(-105%);transition:.3s}#side.on{transform:none}#mb{display:inline-block}.two{grid-template-columns:1fr}main{padding:6px 14px 60px}#top{padding:10px 14px}.hero .em{display:none}.hero h1{font-size:1.7rem}}
+@media print{#side,#top{display:none}}
+</style>
 </head>
-
 <body>
-  <div id="shell">
-    <nav id="side"></nav>
-    <div>
-      <div id="top"><button class="btn l" id="mb">☰ Menu</button><button class="btn" id="cb" style="display:none">🛒
-          Cart<span id="cc">0</span></button></div>
-      <main id="app"></main>
-    </div>
-  </div>
-  <div id="ov"></div>
-  <aside id="dr"></aside>
-  <div id="toast"></div>
-  <script>
-    // ===== CONFIG =====
-    const SUPABASE_URL = "https://dcpvdapxzkaahyhpflul.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_SiQMwIgDgLmckNQHUmO3SA_78UQBLHf";
-    const MANAGER = { name: "Okiror Innocent", phone: "+256763212490" };
-    const MM = { mtn: "0763212490", airtel: "0744645184", name: "MedSupply Uganda" };            // edit: your merchant numbers
-    const BANK = { bank: "Your bank name", name: "MedSupply Uganda Ltd", acct: "0000000000", branch: "Mbarara" }; // edit
-    // ==================
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-    const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    const ugx = n => "UGX " + Math.round(+n || 0).toLocaleString();
-    const ICON = { Antimalarial: "🦟", Antibiotic: "💊", Rehydration: "💧", Analgesic: "🤕" };
-    const expired = d => d && new Date(d) < Date.now();
-    const soon = d => d && !expired(d) && new Date(d) - Date.now() < 90 * 864e5;
-    const pct = p => p.old_price > p.price ? 1 - p.price / p.old_price : 0;
-    const S = { me: null, profile: null, products: [], orders: [], view: "shop", cat: "All", srt: "name", stockOnly: false, favOnly: false, q: "", tab: {}, period: 30, dfilter: "Open", dq: "", chat: [], recovery: false };
-    let cart = (() => { try { return JSON.parse(localStorage.getItem("ms_cart")) || {} } catch { return {} } })();
-    let fav = (() => { try { return JSON.parse(localStorage.getItem("ms_fav")) || [] } catch { return [] } })();
-    let timer;
-    const role = () => !S.me ? "guest" : S.profile?.role === "admin" ? "admin" : "cust";
-    const N = { shop: ["🛒", "Marketplace"], dash: ["🏠", "Dashboard"], orders: ["📦", "My Orders"], deliv: ["🚚", "Deliveries"], inv: ["🏷️", "Inventory"], help: ["💬", "Help Assistant"], pay: ["💳", "Payments"], auth: ["👤", "Account"] };
-    const NAV = { guest: ["shop", "help", "pay", "auth"], cust: ["shop", "orders", "help", "pay", "auth"], admin: ["dash", "shop", "deliv", "inv", "help", "pay", "auth"] };
-    const count = () => Object.values(cart).reduce((a, b) => a + b, 0);
-    const lines = () => Object.entries(cart).map(([id, q]) => ({ p: S.products.find(x => x.id === id), q })).filter(l => l.p);
-    const total = () => lines().reduce((s, l) => s + l.p.price * l.q, 0);
-    const unpaid = o => o.payment_status !== "Paid" && o.status !== "Cancelled";
-    function toast(m, bad) { const t = $("#toast"); t.textContent = m; t.className = "show" + (bad ? " bad" : ""); clearTimeout(toast.t); toast.t = setTimeout(() => t.className = "", 4500) }
-    function persist() { try { localStorage.setItem("ms_cart", JSON.stringify(cart)); localStorage.setItem("ms_fav", JSON.stringify(fav)) } catch { } $("#cc").textContent = count() }
-    const show = h => { $("#app").innerHTML = h };
-    const empty = (e, t, s, b = "") => `<div class="empty"><div class="e">${e}</div><h2>${t}</h2><p>${s}</p>${b}</div>`;
-    const lock = t => empty("🔒", `Log in to see your ${t}`, "Your information appears here after you sign in.", `<button class="btn" data-go="auth">Log in</button>`);
+<div id="shell">
+<nav id="side"></nav>
+<div>
+  <div id="top"><button class="btn l" id="mb">☰ Menu</button><button class="btn" id="cb" style="display:none">🛒 Cart<span id="cc">0</span></button></div>
+  <main id="app"></main>
+</div>
+</div>
+<div id="ov"></div><aside id="dr"></aside><div id="toast"></div>
+<script>
+// ===== CONFIG =====
+const SUPABASE_URL = "https://dcpvdapxzkaahyhpflul.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_SiQMwIgDgLmckNQHUmO3SA_78UQBLHf";
+const MANAGER = { name: "Okiror Innocent", phone: "+256763212490" };
+const MM = { mtn: "0763212490", airtel: "0744645184", name: "MedSupply Uganda" };            // edit: your merchant numbers
+const BANK = { bank: "Your bank name", name: "MedSupply Uganda Ltd", acct: "0000000000", branch: "Mbarara" }; // edit
+// ==================
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const ugx = n => "UGX " + Math.round(+n || 0).toLocaleString();
+const ICON = { Antimalarial: "🦟", Antibiotic: "💊", Rehydration: "💧", Analgesic: "🤕" };
+const expired = d => d && new Date(d) < Date.now();
+const soon = d => d && !expired(d) && new Date(d) - Date.now() < 90 * 864e5;
+const pct = p => p.old_price > p.price ? 1 - p.price / p.old_price : 0;
+const S = { me: null, profile: null, products: [], orders: [], view: "shop", cat: "All", srt: "name", stockOnly: false, favOnly: false, q: "", tab: {}, period: 30, dfilter: "Open", dq: "", chat: [], recovery: false };
+let cart = (() => { try { return JSON.parse(localStorage.getItem("ms_cart")) || {} } catch { return {} } })();
+let fav = (() => { try { return JSON.parse(localStorage.getItem("ms_fav")) || [] } catch { return [] } })();
+let timer;
+const role = () => !S.me ? "guest" : S.profile?.role === "admin" ? "admin" : S.profile?.account_type === "seller" ? (S.profile.seller_status === "approved" ? "seller" : "pseller") : "cust";
+const N = { shop: ["🛒", "Marketplace"], dash: ["🏠", "Dashboard"], orders: ["📦", "My Orders"], deliv: ["🚚", "Deliveries"], inv: ["🏷️", "Inventory"], help: ["💬", "Help Assistant"], pay: ["💳", "Payments"], auth: ["👤", "Account"], sdash: ["📊", "Seller dashboard"], sprod: ["🏷️", "My Products"], sord: ["📥", "Incoming Orders"], sellers: ["🤝", "Sellers"] };
+const NAV = { guest: ["shop", "help", "pay", "auth"], cust: ["shop", "orders", "help", "pay", "auth"], admin: ["dash", "shop", "deliv", "inv", "sellers", "help", "pay", "auth"], seller: ["sdash", "sprod", "sord", "shop", "help", "pay", "auth"], pseller: ["shop", "help", "auth"] };
+const count = () => Object.values(cart).reduce((a, b) => a + b, 0);
+const lines = () => Object.entries(cart).map(([id, q]) => ({ p: S.products.find(x => x.id === id), q })).filter(l => l.p);
+const total = () => lines().reduce((s, l) => s + l.p.price * l.q, 0);
+const unpaid = o => o.payment_status !== "Paid" && o.status !== "Cancelled";
+function toast(m, bad) { const t = $("#toast"); t.textContent = m; t.className = "show" + (bad ? " bad" : ""); clearTimeout(toast.t); toast.t = setTimeout(() => t.className = "", 4500) }
+function persist() { try { localStorage.setItem("ms_cart", JSON.stringify(cart)); localStorage.setItem("ms_fav", JSON.stringify(fav)) } catch { } $("#cc").textContent = count() }
+const show = h => { $("#app").innerHTML = h };
+const empty = (e, t, s, b = "") => `<div class="empty"><div class="e">${e}</div><h2>${t}</h2><p>${s}</p>${b}</div>`;
+const lock = t => empty("🔒", `Log in to see your ${t}`, "Your information appears here after you sign in.", `<button class="btn" data-go="auth">Log in</button>`);
 
-    // ---------- data ----------
-    async function loadP(f) { if (f || !S.products.length) { const r = await sb.from("products").select("*").order("name"); if (r.error) toast(r.error.message, 1); else S.products = r.data || [] } }
-    async function loadO() { if (!S.me) { S.orders = []; return } const r = await sb.from("orders").select("*").order("created_at", { ascending: false }); if (r.error) toast(r.error.message, 1); else S.orders = r.data || [] }
-    function clampCart() { let ch = false; for (const [id, q] of Object.entries(cart)) { const p = S.products.find(x => x.id === id); if (!p || p.stock <= 0 || expired(p.expiry)) { delete cart[id]; ch = true } else if (q > p.stock) { cart[id] = p.stock; ch = true } } if (ch) { persist(); toast("Your cart was updated to match available stock", 1) } }
+// ---------- data ----------
+async function loadP(f) { if (f || !S.products.length) { const r = await sb.from("products").select("*").order("name"); if (r.error) toast(r.error.message, 1); else S.products = r.data || [] } }
+async function loadO() { if (!S.me) { S.orders = []; return } const r = await sb.from("orders").select("*").order("created_at", { ascending: false }); if (r.error) toast(r.error.message, 1); else S.orders = r.data || [] }
+function clampCart() { let ch = false; for (const [id, q] of Object.entries(cart)) { const p = S.products.find(x => x.id === id); if (!p || p.stock <= 0 || expired(p.expiry)) { delete cart[id]; ch = true } else if (q > p.stock) { cart[id] = p.stock; ch = true } } if (ch) { persist(); toast("Your cart was updated to match available stock", 1) } }
 
-    // ---------- session ----------
-    sb.auth.onAuthStateChange((e, s) => { const u = s?.user || null; if (e === "PASSWORD_RECOVERY") { S.recovery = true; S.me = u; return loadAll("auth") } if (u?.id !== S.me?.id) { S.me = u; setTimeout(() => loadAll(), 0) } });
-    sb.auth.getSession().then(({ data }) => { S.me = data.session?.user || null; loadAll() });
-    async function loadAll(v) {
-      S.profile = null;
-      if (S.me) { const r = await sb.from("profiles").select("*").eq("id", S.me.id).maybeSingle(); S.profile = r.data }
-      S.products = []; S.orders = []; persist(); $("#cb").style.display = S.me ? "" : "none";
-      go(v || (S.me && S.view === "auth" ? (role() === "admin" ? "dash" : "shop") : (!S.me && !["shop", "help", "pay", "auth"].includes(S.view) ? "shop" : S.view)));
-    }
-    function side() {
-      const r = role(), nm = (S.profile?.business_name || S.me?.email || "").trim(), due = S.orders.filter(unpaid).length;
-      $("#side").innerHTML = `<div class="brand" data-go="shop">💊 MedSupply Uganda</div><div class="tag">Wholesale medicines for pharmacies and clinics</div>
-  <div class="who">${S.me ? `<b>${esc(nm)}</b>${r === "admin" ? "MedSupply HQ · Admin" : "Verified buyer"}` : "You are browsing as a guest. Log in from <b>Account</b> to order."}</div>
+// ---------- session ----------
+sb.auth.onAuthStateChange((e, s) => { const u = s?.user || null; if (e === "PASSWORD_RECOVERY") { S.recovery = true; S.me = u; return loadAll("auth") } if (u?.id !== S.me?.id) { S.me = u; setTimeout(() => loadAll(), 0) } });
+sb.auth.getSession().then(({ data }) => { S.me = data.session?.user || null; loadAll() });
+async function loadAll(v) {
+  S.profile = null;
+  if (S.me) { const r = await sb.from("profiles").select("*").eq("id", S.me.id).maybeSingle(); S.profile = r.data }
+  if (S.me && S.me.user_metadata?.account_type === "seller" && S.profile?.account_type !== "seller" && S.profile?.role !== "admin") { const r = await sb.rpc("request_seller"); if (!r.error) { const q = await sb.from("profiles").select("*").eq("id", S.me.id).maybeSingle(); S.profile = q.data } }
+  S.products = []; S.orders = []; persist(); $("#cb").style.display = ["cust", "admin"].includes(role()) ? "" : "none";
+  go(v || (S.me && S.view === "auth" ? { admin: "dash", seller: "sdash" }[role()] || "shop" : S.view));
+}
+function side() {
+  const r = role(), nm = (S.profile?.business_name || S.me?.email || "").trim(), due = S.orders.filter(unpaid).length;
+  $("#side").innerHTML = `<div class="brand" data-go="shop">💊 MedSupply Uganda</div><div class="tag">Wholesale medicines for pharmacies and clinics</div>
+  <div class="who">${S.me ? `<b>${esc(nm)}</b>${{ admin: "MedSupply HQ · Admin", seller: "Approved seller", pseller: "Seller · awaiting approval", cust: "Verified buyer" }[r]}` : "You are browsing as a guest. Log in from <b>Account</b> to order."}</div>
   <div class="nav">${NAV[r].map(k => `<a data-go="${k}" class="${S.view === k || (k === "shop" && S.view === "checkout") ? "on" : ""}">${N[k][0]} ${k === "auth" && S.me ? "Account" : N[k][1]}${k === "pay" && due ? `<span class="bd">${due}</span>` : ""}</a>`).join("")}</div>
   ${S.me ? `<div class="lo"><button class="btn o" id="out">Log out</button></div>` : ""}`;
-    }
-    async function go(v) {
-      clearInterval(timer); S.view = v; closeDrawer(); $("#side").classList.remove("on");
-      if (!S.me && ["orders", "dash", "deliv", "inv", "checkout"].includes(v)) v = S.view = "auth";
-      if (role() !== "admin" && ["dash", "deliv", "inv"].includes(v)) v = S.view = "shop";
-      side(); scrollTo(0, 0);
-      await V[v](); side();
-    }
-    document.addEventListener("click", async e => {
-      const t = e.target.closest("[data-go],[data-act],[data-cat],[data-tab],[data-st],[data-inv],[data-pay],[data-fv],[data-sug],#out,#cb,#ov,#mb,.copy"); if (!t) return;
-      const d = t.dataset;
-      if (d.go) return go(d.go);
-      if (t.id === "out") { await sb.auth.signOut(); cart = {}; return persist() }
-      if (t.id === "cb") return openDrawer(); if (t.id === "ov") return closeDrawer();
-      if (t.id === "mb") return $("#side").classList.toggle("on");
-      if (t.classList.contains("copy")) { navigator.clipboard?.writeText(t.dataset.c); return toast("Copied " + t.dataset.c) }
-      if (d.cat) { S.cat = d.cat; return drawShop() }
-      if (d.tab) { const [k, v] = d.tab.split(":"); S.tab[k] = v; return go(S.view) }
-      if (d.fv) { fav = fav.includes(d.fv) ? fav.filter(x => x !== d.fv) : [...fav, d.fv]; persist(); return drawShop() }
-      if (d.sug) return ask(d.sug);
-      if (d.st) { const { error } = await sb.from("orders").update({ status: d.st }).eq("id", d.oid); toast(error ? error.message : `Order #${d.oid} → ${d.st}`, !!error); return go(S.view) }
-      if (d.pay) { const { error } = await sb.from("orders").update({ payment_status: "Paid" }).eq("id", d.pay); toast(error ? error.message : "Marked as paid", !!error); return go(S.view) }
-      const id = d.id, p = S.products.find(x => x.id === id), q = cart[id] || 0;
-      if (d.act === "inc") { if (q >= p.stock) return toast(`Only ${p.stock} available`, 1); cart[id] = q + 1 }
-      if (d.act === "dec") q <= 1 ? delete cart[id] : cart[id] = q - 1;
-      if (d.act === "del") delete cart[id];
-      if (d.act === "reorder") { const o = S.orders.find(x => x.id == d.oid); o.items.forEach(i => { const pp = S.products.find(x => x.id === i.id); if (pp && pp.stock > 0) cart[i.id] = Math.min(i.qty, pp.stock) }); persist(); await go("shop"); return openDrawer() }
-      if (d.act === "inv") return invoice(d.oid);
-      persist(); if (S.view === "shop") drawShop(); if (S.view === "checkout") sumDraw(); drawDrawer();
-    });
-    document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer() });
+}
+async function go(v) {
+  clearInterval(timer); S.view = v; closeDrawer(); $("#side").classList.remove("on");
+  const ok = [...NAV[role()], ...(["cust", "admin"].includes(role()) ? ["checkout"] : [])];
+  if (!ok.includes(v)) v = S.view = S.me ? NAV[role()][0] : "auth";
+  side(); scrollTo(0, 0);
+  await V[v](); side();
+}
+document.addEventListener("click", async e => {
+  const t = e.target.closest("[data-go],[data-act],[data-cat],[data-tab],[data-st],[data-inv],[data-pay],[data-fv],[data-sug],[data-sel],#out,#cb,#ov,#mb,.copy"); if (!t) return;
+  const d = t.dataset;
+  if (d.tab && d.go) { const [k, v] = d.tab.split(":"); S.tab[k] = v }
+  if (d.go) return go(d.go);
+  if (t.id === "out") { await sb.auth.signOut(); cart = {}; return persist() }
+  if (t.id === "cb") return openDrawer(); if (t.id === "ov") return closeDrawer();
+  if (t.id === "mb") return $("#side").classList.toggle("on");
+  if (t.classList.contains("copy")) { navigator.clipboard?.writeText(t.dataset.c); return toast("Copied " + t.dataset.c) }
+  if (d.cat) { S.cat = d.cat; return drawShop() }
+  if (d.tab) { const [k, v] = d.tab.split(":"); S.tab[k] = v; return go(S.view) }
+  if (d.fv) { fav = fav.includes(d.fv) ? fav.filter(x => x !== d.fv) : [...fav, d.fv]; persist(); return drawShop() }
+  if (d.sug) return ask(d.sug);
+  if (d.sel) { const { error } = await sb.rpc("admin_set_seller", { p_user: d.sel, p_status: d.sv }); toast(error ? error.message : "Seller " + d.sv, !!error); return go(S.view) }
+  if (d.st) { const { error } = role() === "seller" ? await sb.rpc("seller_update_order", { p_order: +d.oid, p_status: d.st }) : await sb.from("orders").update({ status: d.st }).eq("id", d.oid); toast(error ? error.message : `Order #${d.oid} → ${d.st}`, !!error); return go(S.view) }
+  if (d.pay) { const { error } = role() === "seller" ? await sb.rpc("seller_update_order", { p_order: +d.pay, p_paid: true }) : await sb.from("orders").update({ payment_status: "Paid" }).eq("id", d.pay); toast(error ? error.message : "Marked as paid", !!error); return go(S.view) }
+  const id = d.id, p = S.products.find(x => x.id === id), q = cart[id] || 0;
+  if (d.act === "inc") { if (q >= p.stock) return toast(`Only ${p.stock} available`, 1); cart[id] = q + 1 }
+  if (d.act === "dec") q <= 1 ? delete cart[id] : cart[id] = q - 1;
+  if (d.act === "del") delete cart[id];
+  if (d.act === "reorder") { const o = S.orders.find(x => x.id == d.oid); o.items.forEach(i => { const pp = S.products.find(x => x.id === i.id); if (pp && pp.stock > 0) cart[i.id] = Math.min(i.qty, pp.stock) }); persist(); await go("shop"); return openDrawer() }
+  if (d.act === "inv") return invoice(d.oid);
+  persist(); if (S.view === "shop") drawShop(); if (S.view === "checkout") sumDraw(); drawDrawer();
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer() });
 
-    // ---------- shop ----------
-    const ctl = p => {
-      if (!S.me) return `<button class="btn sm" data-go="auth">🔒 Log in to order</button>`;
-      const q = cart[p.id] || 0; if (p.stock <= 0) return `<button class="btn" disabled>Out of stock</button>`; if (expired(p.expiry)) return `<button class="btn" disabled>Expired</button>`;
-      return q ? `<div class="step"><button data-act="dec" data-id="${p.id}">−</button><span>${q}</span><button data-act="inc" data-id="${p.id}">+</button></div>` : `<button class="btn" data-act="inc" data-id="${p.id}">🛒 Add to cart</button>`;
-    };
-    const card = (p, i) => {
-      const off = Math.round(pct(p) * 100);
-      return `<div class="pc" style="--i:${i % 14}">${off ? `<span class="dis">-${off}%</span>` : ""}<button class="fv" data-fv="${esc(p.id)}" aria-label="Favourite">${fav.includes(p.id) ? "★" : "☆"}</button>
+// ---------- shop ----------
+const ctl = p => {
+  if (["seller", "pseller"].includes(role())) return `<span class="mt">Seller accounts can't place orders</span>`;
+  if (!S.me) return `<button class="btn sm" data-go="auth">🔒 Log in to order</button>`;
+  const q = cart[p.id] || 0; if (p.stock <= 0) return `<button class="btn" disabled>Out of stock</button>`; if (expired(p.expiry)) return `<button class="btn" disabled>Expired</button>`;
+  return q ? `<div class="step"><button data-act="dec" data-id="${p.id}">−</button><span>${q}</span><button data-act="inc" data-id="${p.id}">+</button></div>` : `<button class="btn" data-act="inc" data-id="${p.id}">🛒 Add to cart</button>`;
+};
+const card = (p, i) => {
+  const off = Math.round(pct(p) * 100);
+  return `<div class="pc" style="--i:${i % 14}">${off ? `<span class="dis">-${off}%</span>` : ""}<button class="fv" data-fv="${esc(p.id)}" aria-label="Favourite">${fav.includes(p.id) ? "★" : "☆"}</button>
   <div class="im">${p.image_url ? `<img src="${esc(p.image_url)}" alt="" loading="lazy">` : ICON[p.category] || "💊"}</div><div class="nm">${esc(p.name)}</div>
-  <div class="mt">${esc(p.category || "")}${p.nda_number ? " · NDA " + esc(p.nda_number) : ""}${p.batch_no ? " · Batch " + esc(p.batch_no) : ""}</div>
+  <div class="mt">${esc(p.category || "")}${p.nda_number ? " · NDA " + esc(p.nda_number) : ""}${p.batch_no ? " · Batch " + esc(p.batch_no) : ""}</div><div class="mt">🏪 ${esc(p.seller_name || "MedSupply HQ")}</div>
   <div class="pr">${ugx(p.price)}${off ? `<s>${ugx(p.old_price)}</s>` : ""}</div>
   <div class="st ${p.stock <= 0 ? "out" : p.stock <= p.reorder_level ? "low" : ""}">${p.stock <= 0 ? "Out of stock" : p.stock <= p.reorder_level ? `Only ${p.stock} left` : "In stock"}${p.expiry ? " · Exp " + esc(p.expiry) : ""}${soon(p.expiry) ? " ⚠" : ""}</div>${ctl(p)}</div>`;
-    };
-    async function V_shop() {
-      show(`<div class="grid">${'<div class="sk"></div>'.repeat(8)}</div>`); await loadP(); if (S.me) { await loadO(); side() } clampCart(); drawDrawer();
-      const n = new Set(S.products.map(p => p.category)).size;
-      show(`<div class="hero"><div class="em">💊</div><h1>Order verified medicines in minutes</h1><p>Wholesale stock for pharmacies, clinics and hospitals across Uganda.</p><div class="chips"><span class="chip">✔ NDA-registered stock</span><span class="chip">💳 Trade credit up to UGX 5M</span><span class="chip">🔔 Order alerts on WhatsApp and email</span></div></div>
+};
+async function V_shop() {
+  show(`<div class="grid">${'<div class="sk"></div>'.repeat(8)}</div>`); await loadP(); if (S.me) { await loadO(); side() } clampCart(); drawDrawer();
+  const n = new Set(S.products.map(p => p.category)).size;
+  show(`<div class="hero"><div class="em">💊</div><h1>Order verified medicines in minutes</h1><p>Wholesale stock for pharmacies, clinics and hospitals across Uganda.</p><div class="chips"><span class="chip">✔ NDA-registered stock</span><span class="chip">💳 Trade credit up to UGX 5M</span><span class="chip">🔔 Order alerts on WhatsApp and email</span></div></div>
   <div class="tick"><span>Every product shows its batch number and expiry date &nbsp;•&nbsp; Same-day dispatch on orders before 2pm &nbsp;•&nbsp; Pay with MTN or Airtel Mobile Money, bank transfer or trade credit &nbsp;•&nbsp; ${S.products.length} products across ${n} categories</span></div>
   <div class="tools"><input id="q" placeholder="🔍 Search by product, category or NDA number" value="${esc(S.q)}"><select id="cs"></select><select id="so">${[["name", "Name A–Z"], ["pa", "Price: low to high"], ["pd", "Price: high to low"], ["off", "Biggest discount"]].map(o => `<option value="${o[0]}" ${o[0] === S.srt ? "selected" : ""}>${o[1]}</option>`).join("")}</select></div>
   <div class="tools"><label class="tg"><input type="checkbox" id="so1" ${S.stockOnly ? "checked" : ""}> In stock only</label><label class="tg"><input type="checkbox" id="fo" ${S.favOnly ? "checked" : ""}> ★ Favourites</label><b id="cnt" class="m"></b></div><div id="cats" class="rad"></div><div id="gr" class="grid"></div>`);
-      $("#q").oninput = e => { S.q = e.target.value; drawShop() }; $("#so").onchange = e => { S.srt = e.target.value; drawShop() }; $("#cs").onchange = e => { S.cat = e.target.value; drawShop() };
-      $("#so1").onchange = e => { S.stockOnly = e.target.checked; drawShop() }; $("#fo").onchange = e => { S.favOnly = e.target.checked; drawShop() }; drawShop();
-    }
-    function drawShop() {
-      if (S.view !== "shop" || !$("#gr")) return;
-      const cats = ["All", ...new Set(S.products.map(p => p.category).filter(Boolean))], f = S.q.trim().toLowerCase();
-      $("#cs").innerHTML = cats.map(c => `<option ${c === S.cat ? "selected" : ""} value="${esc(c)}">${c === "All" ? "All categories" : esc(c)}</option>`).join("");
-      $("#cats").innerHTML = cats.map(c => `<label class="${c === S.cat ? "on" : ""}" data-cat="${esc(c)}">${esc(c)}</label>`).join("");
-      let l = S.products.filter(p => (S.cat === "All" || p.category === S.cat) && (!S.stockOnly || p.stock > 0) && (!S.favOnly || fav.includes(p.id)) && (!f || [p.name, p.category, p.nda_number, p.batch_no].join(" ").toLowerCase().includes(f)));
-      l = S.srt === "pa" ? l.sort((a, b) => a.price - b.price) : S.srt === "pd" ? l.sort((a, b) => b.price - a.price) : S.srt === "off" ? l.sort((a, b) => pct(b) - pct(a)) : l;
-      $("#cnt").textContent = `${l.length} product${l.length === 1 ? "" : "s"}`;
-      $("#gr").innerHTML = l.map(card).join("") || `<div style="grid-column:1/-1">${empty("🔎", "No products found", "Try another search or clear the filters.")}</div>`;
-    }
+  $("#q").oninput = e => { S.q = e.target.value; drawShop() }; $("#so").onchange = e => { S.srt = e.target.value; drawShop() }; $("#cs").onchange = e => { S.cat = e.target.value; drawShop() };
+  $("#so1").onchange = e => { S.stockOnly = e.target.checked; drawShop() }; $("#fo").onchange = e => { S.favOnly = e.target.checked; drawShop() }; drawShop();
+}
+function drawShop() {
+  if (S.view !== "shop" || !$("#gr")) return;
+  const cats = ["All", ...new Set(S.products.map(p => p.category).filter(Boolean))], f = S.q.trim().toLowerCase();
+  $("#cs").innerHTML = cats.map(c => `<option ${c === S.cat ? "selected" : ""} value="${esc(c)}">${c === "All" ? "All categories" : esc(c)}</option>`).join("");
+  $("#cats").innerHTML = cats.map(c => `<label class="${c === S.cat ? "on" : ""}" data-cat="${esc(c)}">${esc(c)}</label>`).join("");
+  let l = S.products.filter(p => (S.cat === "All" || p.category === S.cat) && (!S.stockOnly || p.stock > 0) && (!S.favOnly || fav.includes(p.id)) && (!f || [p.name, p.category, p.nda_number, p.batch_no, p.seller_name].join(" ").toLowerCase().includes(f)));
+  l = S.srt === "pa" ? l.sort((a, b) => a.price - b.price) : S.srt === "pd" ? l.sort((a, b) => b.price - a.price) : S.srt === "off" ? l.sort((a, b) => pct(b) - pct(a)) : l;
+  $("#cnt").textContent = `${l.length} product${l.length === 1 ? "" : "s"}`;
+  $("#gr").innerHTML = l.map(card).join("") || `<div style="grid-column:1/-1">${empty("🔎", "No products found", "Try another search or clear the filters.")}</div>`;
+}
 
-    // ---------- cart + checkout ----------
-    function openDrawer() { drawDrawer(); $("#dr").classList.add("on"); $("#ov").classList.add("on") }
-    function closeDrawer() { $("#dr").classList.remove("on"); $("#ov").classList.remove("on") }
-    function drawDrawer() {
-      const L = lines();
-      $("#dr").innerHTML = `<div class="row"><h3 style="margin:0">Cart (${count()})</h3><a onclick="closeDrawer()">✕</a></div>${L.map(l => `<div class="card"><div class="nm"><span class="th">${l.p.image_url ? `<img src="${esc(l.p.image_url)}" alt="">` : ICON[l.p.category] || "💊"}</span>${esc(l.p.name)}</div><div class="m">${ugx(l.p.price)} each</div>
+// ---------- cart + checkout ----------
+function openDrawer() { drawDrawer(); $("#dr").classList.add("on"); $("#ov").classList.add("on") }
+function closeDrawer() { $("#dr").classList.remove("on"); $("#ov").classList.remove("on") }
+function drawDrawer() {
+  const L = lines();
+  $("#dr").innerHTML = `<div class="row"><h3 style="margin:0">Cart (${count()})</h3><a onclick="closeDrawer()">✕</a></div>${L.map(l => `<div class="card"><div class="nm"><span class="th">${l.p.image_url ? `<img src="${esc(l.p.image_url)}" alt="">` : ICON[l.p.category] || "💊"}</span>${esc(l.p.name)}</div><div class="m">${ugx(l.p.price)} each</div>
   <div class="row"><b>${ugx(l.p.price * l.q)}</b><div class="step" style="width:120px"><button data-act="dec" data-id="${l.p.id}">−</button><span>${l.q}</span><button data-act="inc" data-id="${l.p.id}">+</button></div></div><a data-act="del" data-id="${l.p.id}">Remove</a></div>`).join("") || empty("🛒", "Your cart is empty", "Add medicines from the marketplace.")}
   <div class="row"><b>Subtotal</b><b>${ugx(total())}</b></div><button class="btn" style="width:100%" ${L.length ? "" : "disabled"} data-go="checkout">Checkout</button>`;
-    }
-    async function V_checkout() {
-      await loadP(); clampCart(); if (!lines().length) { toast("Your cart is empty", 1); return go("shop") }
-      const cr = S.profile?.credit_limit || 0, P = S.profile || {};
-      show(`<h1>Checkout</h1><div class="two"><div><div class="card"><h3>1. Delivery details</h3><input id="rn" placeholder="Recipient / shop name" value="${esc(P.business_name)}"><input id="rp" placeholder="Phone (2567...)" value="${esc(P.phone)}"><input id="ra" placeholder="Delivery address / district" value="${esc(P.address)}"><textarea id="nt" placeholder="Notes (optional)"></textarea></div>
+}
+async function V_checkout() {
+  await loadP(); clampCart(); if (!lines().length) { toast("Your cart is empty", 1); return go("shop") }
+  const cr = S.profile?.credit_limit || 0, P = S.profile || {};
+  show(`<h1>Checkout</h1><div class="two"><div><div class="card"><h3>1. Delivery details</h3><input id="rn" placeholder="Recipient / shop name" value="${esc(P.business_name)}"><input id="rp" placeholder="Phone (2567...)" value="${esc(P.phone)}"><input id="ra" placeholder="Delivery address / district" value="${esc(P.address)}"><textarea id="nt" placeholder="Notes (optional)"></textarea></div>
   <div class="card pay"><h3>2. Payment method</h3><label class="o"><input type="radio" name="pm" value="Mobile Money" checked>📱 Mobile Money (MTN / Airtel)</label><label class="o"><input type="radio" name="pm" value="Cash on Delivery">💵 Cash on Delivery</label>
   <label class="o"><input type="radio" name="pm" value="Trade Credit" ${total() > cr ? "disabled" : ""}>🧾 7-day Trade Credit <span class="m">(limit ${ugx(cr)})</span>${total() > cr ? ` <span class="pill r">above your limit</span>` : ""}</label></div></div><div class="card" id="sum"></div></div>`);
-      sumDraw();
-    }
-    function sumDraw() {
-      const s = $("#sum"); if (!s) return;
-      s.innerHTML = `<h3>Order summary</h3>${lines().map(l => `<div class="row"><span>${esc(l.p.name)} × ${l.q}</span><span>${ugx(l.p.price * l.q)}</span></div>`).join("")}<hr><div class="row"><b>Total</b><b style="font-size:1.3rem">${ugx(total())}</b></div><button class="btn acc" id="place" style="width:100%">Place order</button><p><a onclick="openDrawer()">Edit cart</a></p>`;
-      $("#place").onclick = place;
-    }
-    async function place() {
-      const b = $("#place"), name = $("#rn").value.trim(), phone = $("#rp").value.trim(), addr = $("#ra").value.trim();
-      if (!name || !phone || !addr) return toast("Please fill in name, phone and delivery address", 1);
-      if (!/^(\+?256|0)\d{9}$/.test(phone.replace(/[\s-]/g, ""))) return toast("Enter a valid Ugandan phone number, e.g. 256772123456", 1);
-      b.disabled = true; b.textContent = "Placing order...";
-      const method = document.querySelector("input[name=pm]:checked").value;
-      const { data, error } = await sb.rpc("place_order", { p_items: Object.entries(cart).map(([id, qty]) => ({ id, qty })), p_name: name, p_phone: phone, p_address: addr, p_method: method, p_notes: $("#nt").value });
-      if (error) { b.disabled = false; b.textContent = "Place order"; return toast("Order failed: " + error.message, 1) }
-      await sb.from("profiles").update({ business_name: S.profile?.business_name || name, phone, address: addr }).eq("id", S.me.id);
-      cart = {}; persist(); S.products = []; toast(`✅ Order #${data} placed!`); if (method === "Mobile Money") { S.tab.pay = "mm"; go("pay") } else go("orders");
-    }
+  sumDraw();
+}
+function sumDraw() {
+  const s = $("#sum"); if (!s) return;
+  s.innerHTML = `<h3>Order summary</h3>${lines().map(l => `<div class="row"><span>${esc(l.p.name)} × ${l.q}</span><span>${ugx(l.p.price * l.q)}</span></div>`).join("")}<hr><div class="row"><b>Total</b><b style="font-size:1.3rem">${ugx(total())}</b></div><button class="btn acc" id="place" style="width:100%">Place order</button><p><a onclick="openDrawer()">Edit cart</a></p>`;
+  $("#place").onclick = place;
+}
+async function place() {
+  const b = $("#place"), name = $("#rn").value.trim(), phone = $("#rp").value.trim(), addr = $("#ra").value.trim();
+  if (!name || !phone || !addr) return toast("Please fill in name, phone and delivery address", 1);
+  if (!/^(\+?256|0)\d{9}$/.test(phone.replace(/[\s-]/g, ""))) return toast("Enter a valid Ugandan phone number, e.g. 256772123456", 1);
+  b.disabled = true; b.textContent = "Placing order...";
+  const method = document.querySelector("input[name=pm]:checked").value;
+  const { data, error } = await sb.rpc("place_order", { p_items: Object.entries(cart).map(([id, qty]) => ({ id, qty })), p_name: name, p_phone: phone, p_address: addr, p_method: method, p_notes: $("#nt").value });
+  if (error) { b.disabled = false; b.textContent = "Place order"; return toast("Order failed: " + error.message, 1) }
+  await sb.from("profiles").update({ business_name: S.profile?.business_name || name, phone, address: addr }).eq("id", S.me.id);
+  const ids = [].concat(data); cart = {}; persist(); S.products = []; toast(ids.length > 1 ? `✅ ${ids.length} orders placed (one per seller): #${ids.join(", #")}` : `✅ Order #${ids[0]} placed!`); if (method === "Mobile Money") { S.tab.pay = "mm"; go("pay") } else go("orders");
+}
 
-    // ---------- orders ----------
-    const STEPS = ["Processing", "Dispatched", "Delivered"];
-    const trk = o => `<div class="trk">${o.status === "Cancelled" ? `<div class="x">Cancelled</div>` : STEPS.map((s, k) => `<div class="${STEPS.indexOf(o.status) >= k ? "done" : ""}">${s}</div>`).join("")}</div>`;
-    const ppill = o => `<span class="pill ${o.payment_status === "Paid" ? "" : "y"}">${esc(o.payment_status)}</span>`;
-    async function V_orders() {
-      await Promise.all([loadP(), loadO()]);
-      show(`<h1>My orders</h1>` + (S.orders.map(o => `<div class="card"><div class="row"><b>Order #${o.id}</b><span class="m">${new Date(o.created_at).toLocaleString()}</span></div>${trk(o)}${o.items.map(x => `<div class="row"><span>${esc(x.name)} × ${x.qty}</span><span>${ugx(x.price * x.qty)}</span></div>`).join("")}
+// ---------- orders ----------
+const STEPS = ["Processing", "Dispatched", "Delivered"];
+const trk = o => `<div class="trk">${o.status === "Cancelled" ? `<div class="x">Cancelled</div>` : STEPS.map((s, k) => `<div class="${STEPS.indexOf(o.status) >= k ? "done" : ""}">${s}</div>`).join("")}</div>`;
+const ppill = o => `<span class="pill ${o.payment_status === "Paid" ? "" : "y"}">${esc(o.payment_status)}</span>`;
+async function V_orders() {
+  await Promise.all([loadP(), loadO()]);
+  show(`<h1>My orders</h1>` + (S.orders.map(o => `<div class="card"><div class="row"><b>Order #${o.id}</b><span class="m">${new Date(o.created_at).toLocaleString()}</span></div>${trk(o)}${o.items.map(x => `<div class="row"><span>${esc(x.name)} × ${x.qty}</span><span>${ugx(x.price * x.qty)}</span></div>`).join("")}
   <div class="row"><span>${esc(o.payment_method)} ${ppill(o)}</span><b>${ugx(o.total)}</b></div><div class="row"><span><button class="btn sm" data-act="reorder" data-oid="${o.id}">↻ Reorder</button> <button class="btn sm l" data-act="inv" data-oid="${o.id}">🧾 Invoice</button></span>${unpaid(o) ? `<button class="btn sm acc" data-tab="pay:mm" data-go="pay">Pay now</button>` : ""}</div></div>`).join("") || empty("📦", "No orders yet", "Your orders will appear here.", `<button class="btn" data-go="shop">Start shopping</button>`)));
-    }
-    function invoice(id) {
-      const o = S.orders.find(x => x.id == id), w = open("", "_blank"); if (!w) return toast("Allow pop-ups to print the invoice", 1);
-      w.document.write(`<title>Invoice #${o.id}</title><body style="font:14px system-ui;max-width:720px;margin:30px auto"><h2>💊 MedSupply Uganda — Invoice #${o.id}</h2><p>${esc(o.recipient_name)}<br>${esc(o.phone)}<br>${esc(o.address)}<br>${new Date(o.created_at).toLocaleString()}</p><table border="1" cellpadding="7" style="border-collapse:collapse;width:100%"><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>${o.items.map(i => `<tr><td>${esc(i.name)}</td><td>${i.qty}</td><td>${ugx(i.price)}</td><td>${ugx(i.price * i.qty)}</td></tr>`).join("")}</table><h3>Total: ${ugx(o.total)}</h3><p>${esc(o.payment_method)} · ${esc(o.payment_status)}</p><p>Questions? ${MANAGER.name} ${MANAGER.phone}</p><script>print()<\/script>`); w.document.close();
-    }
+}
+function invoice(id) {
+  const o = S.orders.find(x => x.id == id), w = open("", "_blank"); if (!w) return toast("Allow pop-ups to print the invoice", 1);
+  w.document.write(`<title>Invoice #${o.id}</title><body style="font:14px system-ui;max-width:720px;margin:30px auto"><h2>💊 MedSupply Uganda — Invoice #${o.id}</h2><p>${esc(o.recipient_name)}<br>${esc(o.phone)}<br>${esc(o.address)}<br>${new Date(o.created_at).toLocaleString()}</p><table border="1" cellpadding="7" style="border-collapse:collapse;width:100%"><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>${o.items.map(i => `<tr><td>${esc(i.name)}</td><td>${i.qty}</td><td>${ugx(i.price)}</td><td>${ugx(i.price * i.qty)}</td></tr>`).join("")}</table><h3>Total: ${ugx(o.total)}</h3><p>${esc(o.payment_method)} · ${esc(o.payment_status)}</p><p>Questions? ${MANAGER.name} ${MANAGER.phone}</p><script>print()<\/script>`); w.document.close();
+}
 
-    // ---------- payments ----------
-    const tabs = (k, items, cur) => `<div class="tabs">${items.map(([v, l]) => `<a data-tab="${k}:${v}" class="${cur === v ? "on" : ""}">${l}</a>`).join("")}</div>`;
-    async function V_pay() {
-      const t = S.tab.pay || "out"; await loadO(); const due = S.orders.filter(unpaid), sum = due.reduce((s, o) => s + +o.total, 0), adm = role() === "admin";
-      let b = "";
-      if (!S.me) b = lock("invoices");
-      else if (t === "out") b = `<div class="kp"><div class="k y"><small>Outstanding</small><b>${ugx(sum)}</b></div><div class="k"><small>Open invoices</small><b>${due.length}</b></div></div>` + (due.map(o => `<div class="card"><div class="row"><b>Order #${o.id}${adm ? " · " + esc(o.recipient_name) : ""}</b>${ppill(o)}</div><div class="row"><span class="m">${esc(o.payment_method)} · ${new Date(o.created_at).toLocaleDateString()}</span><b>${ugx(o.total)}</b></div>
+// ---------- payments ----------
+const tabs = (k, items, cur) => `<div class="tabs">${items.map(([v, l]) => `<a data-tab="${k}:${v}" class="${cur === v ? "on" : ""}">${l}</a>`).join("")}</div>`;
+async function V_pay() {
+  const t = S.tab.pay || "out"; await loadO(); const due = S.orders.filter(unpaid), sum = due.reduce((s, o) => s + +o.total, 0), adm = ["admin", "seller"].includes(role());
+  let b = "";
+  if (!S.me) b = lock("invoices");
+  else if (t === "out") b = `<div class="kp"><div class="k y"><small>Outstanding</small><b>${ugx(sum)}</b></div><div class="k"><small>Open invoices</small><b>${due.length}</b></div></div>` + (due.map(o => `<div class="card"><div class="row"><b>Order #${o.id}${adm ? " · " + esc(o.recipient_name) : ""}</b>${ppill(o)}</div><div class="row"><span class="m">${esc(o.payment_method)} · ${new Date(o.created_at).toLocaleDateString()}</span><b>${ugx(o.total)}</b></div>
     <div class="row">${adm ? `<button class="btn sm" data-pay="${o.id}">✔ Mark as paid</button>` : `<button class="btn sm acc" data-tab="pay:mm">Pay by Mobile Money</button>`}<button class="btn sm l" data-act="inv" data-oid="${o.id}">🧾 Invoice</button></div></div>`).join("") || empty("🎉", "All paid up", "You have no outstanding payments."));
-      else if (t === "mm") b = `<div class="card pay"><h3>Pay with MTN or Airtel Mobile Money</h3><p>1. Send the amount to <span class="copy" data-c="${MM.mtn}">MTN ${MM.mtn}</span> or <span class="copy" data-c="${MM.airtel}">Airtel ${MM.airtel}</span> (name: <b>${esc(MM.name)}</b>).<br>2. Enter the transaction ID below so we can confirm.</p>
+  else if (t === "mm") b = `<div class="card pay"><h3>Pay with MTN or Airtel Mobile Money</h3><p>1. Send the amount to <span class="copy" data-c="${MM.mtn}">MTN ${MM.mtn}</span> or <span class="copy" data-c="${MM.airtel}">Airtel ${MM.airtel}</span> (name: <b>${esc(MM.name)}</b>).<br>2. Enter the transaction ID below so we can confirm.</p>
     <select id="po">${due.map(o => `<option value="${o.id}">Order #${o.id} · ${ugx(o.total)}</option>`).join("") || "<option value=''>No open invoices</option>"}</select><input id="pr" placeholder="Transaction ID from the SMS"><button class="btn" id="ps" ${due.length ? "" : "disabled"}>Submit payment</button></div>`;
-      else b = `<div class="card"><h3>Bank transfer</h3><table class="bank"><tr><td>Bank</td><td><b>${esc(BANK.bank)}</b></td></tr><tr><td>Account name</td><td><b>${esc(BANK.name)}</b></td></tr><tr><td>Account number</td><td><span class="copy" data-c="${BANK.acct}">${BANK.acct}</span></td></tr><tr><td>Branch</td><td>${esc(BANK.branch)}</td></tr><tr><td>Reference</td><td>Your order number</td></tr></table><p class="m">After transferring, submit the reference under the Mobile money tab or WhatsApp the slip to ${MANAGER.phone}.</p></div>`;
-      show(`<h1>Payments</h1>${tabs("pay", [["out", "Outstanding"], ["mm", "Mobile money"], ["bank", "Bank transfer"]], t)}${b}`);
-      if ($("#ps")) $("#ps").onclick = async () => { const ref = $("#pr").value.trim(); if (!ref) return toast("Enter the transaction ID", 1); const { error } = await sb.rpc("submit_payment", { p_order: +$("#po").value, p_ref: ref }); toast(error ? error.message : "Payment submitted. We will confirm shortly.", !!error); if (!error) { S.tab.pay = "out"; go("pay") } };
-    }
+  else b = `<div class="card"><h3>Bank transfer</h3><table class="bank"><tr><td>Bank</td><td><b>${esc(BANK.bank)}</b></td></tr><tr><td>Account name</td><td><b>${esc(BANK.name)}</b></td></tr><tr><td>Account number</td><td><span class="copy" data-c="${BANK.acct}">${BANK.acct}</span></td></tr><tr><td>Branch</td><td>${esc(BANK.branch)}</td></tr><tr><td>Reference</td><td>Your order number</td></tr></table><p class="m">After transferring, submit the reference under the Mobile money tab or WhatsApp the slip to ${MANAGER.phone}.</p></div>`;
+  show(`<h1>Payments</h1>${tabs("pay", [["out", "Outstanding"], ["mm", "Mobile money"], ["bank", "Bank transfer"]], t)}${b}`);
+  if ($("#ps")) $("#ps").onclick = async () => { const ref = $("#pr").value.trim(); if (!ref) return toast("Enter the transaction ID", 1); const { error } = await sb.rpc("submit_payment", { p_order: +$("#po").value, p_ref: ref }); toast(error ? error.message : "Payment submitted. We will confirm shortly.", !!error); if (!error) { S.tab.pay = "out"; go("pay") } };
+}
 
-    // ---------- account ----------
-    async function V_auth() {
-      if (S.recovery) { show(`<div class="card auth"><h2>Set a new password</h2><input id="np" type="password" placeholder="New password (min 8 chars)"><button class="btn" id="sp">Save password</button></div>`); return $("#sp").onclick = async () => { const { error } = await sb.auth.updateUser({ password: $("#np").value }); toast(error ? error.message : "Password updated", !!error); if (!error) { S.recovery = false; go("shop") } } }
-      if (S.me) {
-        const P = S.profile || {}; show(`<h1>Account</h1><div class="card auth" style="margin:0"><p class="m">${esc(S.me.email)} · Credit limit <b>${ugx(P.credit_limit)}</b></p><label>Business name<input id="bn" value="${esc(P.business_name)}"></label><label>Phone<input id="ph" value="${esc(P.phone)}"></label><label>Delivery address<input id="ad" value="${esc(P.address)}"></label><button class="btn" id="sv">Save profile</button></div>`);
-        return $("#sv").onclick = async () => { const { error } = await sb.from("profiles").update({ business_name: $("#bn").value, phone: $("#ph").value, address: $("#ad").value }).eq("id", S.me.id); toast(error ? error.message : "Profile saved", !!error); if (!error) { S.profile = { ...S.profile, business_name: $("#bn").value, phone: $("#ph").value, address: $("#ad").value }; side() } };
-      }
-      const t = S.tab.auth || "in", f = { in: `<label>Email<input id="em" type="email"></label><label>Password<input id="pw" type="password"></label><button class="btn" id="go">Log in</button>`, up: `<input id="bn" placeholder="Business name"><input id="ph" placeholder="Phone (2567...)"><input id="em" type="email" placeholder="Email"><input id="pw" type="password" placeholder="Password (min 8 chars)"><button class="btn" id="go">Create account</button>`, rs: `<input id="em" type="email" placeholder="Your email"><button class="btn" id="go">Send reset link</button>` };
-      show(`<h1>Account</h1>${tabs("auth", [["in", "Log in"], ["up", "Create account"], ["rs", "Reset password"]], t)}<div class="card">${f[t]}</div>`);
-      $("#go").onclick = async () => {
-        const email = $("#em").value.trim(), password = $("#pw")?.value; if (!email) return toast("Enter your email", 1);
-        if (t === "rs") { const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin }); return toast(error ? error.message : "Reset link sent. Check your email.", !!error) }
-        const r = t === "up" ? await sb.auth.signUp({ email, password, options: { data: { business_name: $("#bn").value, phone: $("#ph").value } } }) : await sb.auth.signInWithPassword({ email, password });
-        if (r.error) return toast(r.error.message, 1); if (t === "up" && !r.data.session) toast("Account created. Check your email to confirm, then log in.");
-      };
-    }
+// ---------- account ----------
+async function V_auth() {
+  if (S.recovery) { show(`<div class="card auth"><h2>Set a new password</h2><input id="np" type="password" placeholder="New password (min 8 chars)"><button class="btn" id="sp">Save password</button></div>`); return $("#sp").onclick = async () => { const { error } = await sb.auth.updateUser({ password: $("#np").value }); toast(error ? error.message : "Password updated", !!error); if (!error) { S.recovery = false; go("shop") } } }
+  if (S.me) {
+    const P = S.profile || {}, rr = role(), banner = rr === "pseller" ? `<div class="card" style="border-left:6px solid var(--acc)">⏳ Your seller account is <b>${esc(P.seller_status || "pending")}</b>. ${P.seller_status === "rejected" ? "Please contact the manager." : "MedSupply will review it, then you can list products."}</div>` : rr === "seller" ? `<div class="card" style="border-left:6px solid var(--teal)">✅ Approved seller account</div>` : ""; show(`<h1>Account</h1>${banner}<div class="card auth" style="margin:0"><p class="m">${esc(S.me.email)} · Credit limit <b>${ugx(P.credit_limit)}</b></p><label>Business name<input id="bn" value="${esc(P.business_name)}"></label><label>Phone<input id="ph" value="${esc(P.phone)}"></label><label>Delivery address<input id="ad" value="${esc(P.address)}"></label><button class="btn" id="sv">Save profile</button></div>`);
+    return $("#sv").onclick = async () => { const { error } = await sb.from("profiles").update({ business_name: $("#bn").value, phone: $("#ph").value, address: $("#ad").value }).eq("id", S.me.id); toast(error ? error.message : "Profile saved", !!error); if (!error) { S.profile = { ...S.profile, business_name: $("#bn").value, phone: $("#ph").value, address: $("#ad").value }; side() } };
+  }
+  const t = S.tab.auth || "in", f = { in: `<label>Email<input id="em" type="email"></label><label>Password<input id="pw" type="password"></label><button class="btn" id="go">Log in</button>`, up: `<select id="at"><option value="buyer">I want to BUY (pharmacy / clinic)</option><option value="seller">I want to SELL (supplier / distributor)</option></select><input id="bn" placeholder="Business name"><input id="ph" placeholder="Phone (2567...)"><input id="em" type="email" placeholder="Email"><input id="pw" type="password" placeholder="Password (min 8 chars)"><button class="btn" id="go">Create account</button>`, rs: `<input id="em" type="email" placeholder="Your email"><button class="btn" id="go">Send reset link</button>` };
+  show(`<h1>Account</h1>${tabs("auth", [["in", "Log in"], ["up", "Create account"], ["rs", "Reset password"]], t)}<div class="card">${f[t]}</div>`);
+  $("#go").onclick = async () => {
+    const email = $("#em").value.trim(), password = $("#pw")?.value; if (!email) return toast("Enter your email", 1);
+    if (t === "rs") { const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin }); return toast(error ? error.message : "Reset link sent. Check your email.", !!error) }
+    const r = t === "up" ? await sb.auth.signUp({ email, password, options: { data: { business_name: $("#bn").value, phone: $("#ph").value, account_type: $("#at").value } } }) : await sb.auth.signInWithPassword({ email, password });
+    if (r.error) return toast(r.error.message, 1); if (t === "up" && !r.data.session) toast("Account created. Check your email to confirm, then log in.");
+  };
+}
 
-    // ---------- help assistant ----------
-    async function V_help() {
-      await loadP(); if (S.me) await loadO();
-      if (!S.chat.length) S.chat.push({ r: "b", t: "Hello! Ask me about <b>prices</b>, <b>stock</b>, <b>credit</b>, <b>delivery</b>, <b>order status</b> or the <b>manager</b>." });
-      show(`<h1>Help Assistant</h1><p class="m">For anything else, call ${MANAGER.name} on ${MANAGER.phone}.</p><div class="sug">${[["📋 Catalog", "catalog"], ["💰 Prices", "prices"], ["🚚 Order status", "order status"], ["🏷️ Discounts", "discounts"], ["👤 Manager", "manager"]].map(s => `<button class="btn l" data-sug="${s[1]}">${s[0]}</button>`).join("")}</div>
+// ---------- help assistant ----------
+async function V_help() {
+  await loadP(); if (S.me) await loadO();
+  if (!S.chat.length) S.chat.push({ r: "b", t: "Hello! Ask me about <b>prices</b>, <b>stock</b>, <b>credit</b>, <b>delivery</b>, <b>order status</b> or the <b>manager</b>." });
+  show(`<h1>Help Assistant</h1><p class="m">For anything else, call ${MANAGER.name} on ${MANAGER.phone}.</p><div class="sug">${[["📋 Catalog", "catalog"], ["💰 Prices", "prices"], ["🚚 Order status", "order status"], ["🏷️ Discounts", "discounts"], ["👤 Manager", "manager"]].map(s => `<button class="btn l" data-sug="${s[1]}">${s[0]}</button>`).join("")}</div>
   <div class="card"><div class="chat" id="ch"></div></div><div class="tools"><input id="hq" placeholder="Ask about prices, stock or orders"><button class="btn" id="hs" style="flex:none">Send ➤</button></div>`);
-      drawChat(); $("#hs").onclick = () => { const v = $("#hq").value.trim(); if (v) ask(v) }; $("#hq").onkeydown = e => { if (e.key === "Enter") $("#hs").click() };
-    }
-    function drawChat() { const c = $("#ch"); if (!c) return; c.innerHTML = S.chat.map(m => `<div class="msg ${m.r}"><div class="av">${m.r === "b" ? "🤖" : "🙂"}</div><div class="bb">${m.t}</div></div>`).join(""); c.scrollTop = c.scrollHeight }
-    function ask(q) { if (S.view !== "help") return go("help").then(() => ask(q)); S.chat.push({ r: "u", t: esc(q) }); $("#hq").value = ""; drawChat(); setTimeout(() => { S.chat.push({ r: "b", t: answer(q) }); drawChat() }, 450) }
-    function answer(q) {
-      const s = q.toLowerCase(), P = S.products, m = P.find(p => p.name.toLowerCase().split(/[\s,()]+/).some(w => w.length > 3 && s.includes(w))), o = S.orders[0];
-      if (/manager|contact|human|call/.test(s)) return `Call <b>${MANAGER.name}</b> on <a href="tel:${MANAGER.phone}">${MANAGER.phone}</a> or <a target="_blank" href="https://wa.me/${MANAGER.phone.replace(/\D/g, "")}">WhatsApp him</a>.`;
-      if (/discount|offer|deal|promo/.test(s)) { const d = P.filter(p => pct(p) > 0); return d.length ? "Current deals:<br>" + d.map(p => `• ${esc(p.name)} <b>${ugx(p.price)}</b> <s>${ugx(p.old_price)}</s>`).join("<br>") : "No discounts at the moment. Check back soon." }
-      if (m && /price|cost|stock|available|left|much|have/.test(s)) return `<b>${esc(m.name)}</b>: ${ugx(m.price)}, ${m.stock > 0 ? m.stock + " in stock" : "currently out of stock"}${m.expiry ? ", expires " + esc(m.expiry) : ""}.`;
-      if (/order|status|track/.test(s)) return !S.me ? "Please log in from Account so I can check your orders." : o ? `Your latest order <b>#${o.id}</b> is <b>${o.status}</b> (${o.payment_status}), total ${ugx(o.total)}.` : "You have no orders yet.";
-      if (/credit|limit/.test(s)) return S.me ? `Your trade credit limit is <b>${ugx(S.profile?.credit_limit)}</b> with 7-day terms.` : "Trade credit is for registered shops. Create an account to get a limit.";
-      if (/deliver|ship|dispatch/.test(s)) return "Orders placed before 2pm are processed the same day. You can follow each order from <b>My Orders</b> (Processing → Dispatched → Delivered).";
-      if (/pay|mobile|bank|invoice|momo/.test(s)) return "We accept MTN/Airtel Mobile Money, bank transfer, cash on delivery and 7-day trade credit. Open <b>Payments</b> for details.";
-      if (m) return `<b>${esc(m.name)}</b>: ${ugx(m.price)}, ${m.stock > 0 ? m.stock + " in stock" : "out of stock"}.`;
-      if (/catalog|categor|product|list|stock/.test(s)) { const c = {}; P.forEach(p => c[p.category || "Other"] = (c[p.category || "Other"] || 0) + 1); return `We have <b>${P.length}</b> products:<br>` + Object.entries(c).map(([k, v]) => `• ${esc(k)}: ${v}`).join("<br>") }
-      if (/price|cost/.test(s)) return "Most affordable:<br>" + [...P].sort((a, b) => a.price - b.price).slice(0, 5).map(p => `• ${esc(p.name)} ${ugx(p.price)}`).join("<br>");
-      return `I can help with prices, stock, credit, delivery, order status and discounts. For anything else call ${MANAGER.name} on ${MANAGER.phone}.`;
-    }
+  drawChat(); $("#hs").onclick = () => { const v = $("#hq").value.trim(); if (v) ask(v) }; $("#hq").onkeydown = e => { if (e.key === "Enter") $("#hs").click() };
+}
+function drawChat() { const c = $("#ch"); if (!c) return; c.innerHTML = S.chat.map(m => `<div class="msg ${m.r}"><div class="av">${m.r === "b" ? "🤖" : "🙂"}</div><div class="bb">${m.t}</div></div>`).join(""); c.scrollTop = c.scrollHeight }
+function ask(q) { if (S.view !== "help") return go("help").then(() => ask(q)); S.chat.push({ r: "u", t: esc(q) }); $("#hq").value = ""; drawChat(); setTimeout(() => { S.chat.push({ r: "b", t: answer(q) }); drawChat() }, 450) }
+function answer(q) {
+  const s = q.toLowerCase(), P = S.products, m = P.find(p => p.name.toLowerCase().split(/[\s,()]+/).some(w => w.length > 3 && s.includes(w))), o = S.orders[0];
+  if (/manager|contact|human|call/.test(s)) return `Call <b>${MANAGER.name}</b> on <a href="tel:${MANAGER.phone}">${MANAGER.phone}</a> or <a target="_blank" href="https://wa.me/${MANAGER.phone.replace(/\D/g, "")}">WhatsApp him</a>.`;
+  if (/discount|offer|deal|promo/.test(s)) { const d = P.filter(p => pct(p) > 0); return d.length ? "Current deals:<br>" + d.map(p => `• ${esc(p.name)} <b>${ugx(p.price)}</b> <s>${ugx(p.old_price)}</s>`).join("<br>") : "No discounts at the moment. Check back soon." }
+  if (m && /price|cost|stock|available|left|much|have/.test(s)) return `<b>${esc(m.name)}</b>: ${ugx(m.price)}, ${m.stock > 0 ? m.stock + " in stock" : "currently out of stock"}${m.expiry ? ", expires " + esc(m.expiry) : ""}.`;
+  if (/order|status|track/.test(s)) return !S.me ? "Please log in from Account so I can check your orders." : o ? `Your latest order <b>#${o.id}</b> is <b>${o.status}</b> (${o.payment_status}), total ${ugx(o.total)}.` : "You have no orders yet.";
+  if (/credit|limit/.test(s)) return S.me ? `Your trade credit limit is <b>${ugx(S.profile?.credit_limit)}</b> with 7-day terms.` : "Trade credit is for registered shops. Create an account to get a limit.";
+  if (/deliver|ship|dispatch/.test(s)) return "Orders placed before 2pm are processed the same day. You can follow each order from <b>My Orders</b> (Processing → Dispatched → Delivered).";
+  if (/pay|mobile|bank|invoice|momo/.test(s)) return "We accept MTN/Airtel Mobile Money, bank transfer, cash on delivery and 7-day trade credit. Open <b>Payments</b> for details.";
+  if (m) return `<b>${esc(m.name)}</b>: ${ugx(m.price)}, ${m.stock > 0 ? m.stock + " in stock" : "out of stock"}.`;
+  if (/catalog|categor|product|list|stock/.test(s)) { const c = {}; P.forEach(p => c[p.category || "Other"] = (c[p.category || "Other"] || 0) + 1); return `We have <b>${P.length}</b> products:<br>` + Object.entries(c).map(([k, v]) => `• ${esc(k)}: ${v}`).join("<br>") }
+  if (/price|cost/.test(s)) return "Most affordable:<br>" + [...P].sort((a, b) => a.price - b.price).slice(0, 5).map(p => `• ${esc(p.name)} ${ugx(p.price)}`).join("<br>");
+  return `I can help with prices, stock, credit, delivery, order status and discounts. For anything else call ${MANAGER.name} on ${MANAGER.phone}.`;
+}
 
-    // ---------- admin: dashboard ----------
-    const rad = (k, items, cur) => `<div class="rad">${items.map(([v, l]) => `<label class="${String(cur) === String(v) ? "on" : ""}"><input type="radio" name="${k}" value="${v}">${l}</label>`).join("")}</div>`;
-    const bind = (k, fn) => $$(`input[name=${k}]`).forEach(i => i.onchange = () => fn(i.value));
-    async function V_dash() {
-      await Promise.all([loadP(), loadO()]); const n = S.period, since = Date.now() - n * 864e5, O = S.orders.filter(o => new Date(o.created_at) >= since && o.status !== "Cancelled");
-      const rev = O.reduce((s, o) => s + +o.total, 0), wait = S.orders.filter(unpaid), low = S.products.filter(p => p.stock <= p.reorder_level), day = {};
-      for (let i = n - 1; i >= 0; i--) day[new Date(Date.now() - i * 864e5).toISOString().slice(0, 10)] = 0; O.forEach(o => { const k = o.created_at.slice(0, 10); if (k in day) day[k] += +o.total });
-      const D = Object.entries(day), mx = Math.max(1, ...D.map(d => d[1])), st = ["Processing", "Dispatched", "Delivered", "Cancelled"].map(s => [s, S.orders.filter(o => o.status === s).length]), mxs = Math.max(1, ...st.map(x => x[1])), tp = {};
-      O.forEach(o => o.items.forEach(i => tp[i.name] = (tp[i.name] || 0) + i.qty * i.price)); const top = Object.entries(tp).sort((a, b) => b[1] - a[1]).slice(0, 5), mt = top[0]?.[1] || 1;
-      show(`<h1>Operations dashboard</h1>${rad("pd", [[7, "Last 7 days"], [14, "Last 14 days"], [30, "Last 30 days"], [90, "Last 90 days"]], n)}
+// ---------- admin: dashboard ----------
+const rad = (k, items, cur) => `<div class="rad">${items.map(([v, l]) => `<label class="${String(cur) === String(v) ? "on" : ""}"><input type="radio" name="${k}" value="${v}">${l}</label>`).join("")}</div>`;
+const bind = (k, fn) => $$(`input[name=${k}]`).forEach(i => i.onchange = () => fn(i.value));
+async function V_dash() {
+  await Promise.all([loadP(), loadO()]); const MP = role() === "seller" ? S.products.filter(p => p.seller_id === S.me.id) : S.products, n = S.period, since = Date.now() - n * 864e5, O = S.orders.filter(o => new Date(o.created_at) >= since && o.status !== "Cancelled");
+  const rev = O.reduce((s, o) => s + +o.total, 0), wait = S.orders.filter(unpaid), low = MP.filter(p => p.stock <= p.reorder_level), day = {};
+  for (let i = n - 1; i >= 0; i--) day[new Date(Date.now() - i * 864e5).toISOString().slice(0, 10)] = 0; O.forEach(o => { const k = o.created_at.slice(0, 10); if (k in day) day[k] += +o.total });
+  const D = Object.entries(day), mx = Math.max(1, ...D.map(d => d[1])), st = ["Processing", "Dispatched", "Delivered", "Cancelled"].map(s => [s, S.orders.filter(o => o.status === s).length]), mxs = Math.max(1, ...st.map(x => x[1])), tp = {};
+  O.forEach(o => o.items.forEach(i => tp[i.name] = (tp[i.name] || 0) + i.qty * i.price)); const top = Object.entries(tp).sort((a, b) => b[1] - a[1]).slice(0, 5), mt = top[0]?.[1] || 1;
+  show(`<h1>${role() === "seller" ? "Seller dashboard" : "Operations dashboard"}</h1>${rad("pd", [[7, "Last 7 days"], [14, "Last 14 days"], [30, "Last 30 days"], [90, "Last 90 days"]], n)}
   <div class="kp"><div class="k"><small>Revenue</small><b>${ugx(rev)}</b><small>${O.length} orders in ${n} days</small></div><div class="k y"><small>Awaiting payment</small><b>${ugx(wait.reduce((s, o) => s + +o.total, 0))}</b><small>${wait.length} open invoices</small></div><div class="k"><small>To ship</small><b>${S.orders.filter(o => o.status === "Processing").length}</b><small>${S.orders.filter(o => o.status === "Dispatched").length} on the road</small></div><div class="k r"><small>Low stock items</small><b>${low.length}</b><small>at or under reorder level</small></div></div>
   <div class="two"><div class="card"><h3>Revenue per day</h3>${rev ? `<svg viewBox="0 0 100 40" preserveAspectRatio="none" class="ch"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#14a094"/><stop offset="1" stop-color="#0e6b63"/></linearGradient></defs>${D.map((d, i) => { const w = 100 / D.length, h = d[1] / mx * 36; return `<rect x="${i * w + w * .15}" y="${40 - h}" width="${w * .7}" height="${h}" fill="url(#g)"><title>${d[0]}: ${ugx(d[1])}</title></rect>` }).join("")}</svg><div class="ax"><span>${D[0][0]}</span><span>${D.at(-1)[0]}</span></div>` : `<p class="m">No sales in this period.</p>`}</div>
   <div class="card"><h3>Orders by status</h3>${S.orders.length ? st.map(([k, v]) => `<div class="bar"><span>${k}</span><i><u style="width:${v / mxs * 100}%"></u></i><b>${v}</b></div>`).join("") : `<p class="m">No orders yet.</p>`}</div></div>
   <div class="two"><div class="card"><h3>Top products</h3>${top.map(([k, v]) => `<div class="bar"><span style="width:140px">${esc(k)}</span><i><u style="width:${v / mt * 100}%"></u></i><b>${ugx(v)}</b></div>`).join("") || `<p class="m">No sales yet.</p>`}</div>
-  <div class="card"><h3>⚠ Needs attention</h3>${low.slice(0, 5).map(p => `<div class="row"><span>${esc(p.name)}</span><span class="pill r">${p.stock} left</span></div>`).join("")}${S.products.filter(p => soon(p.expiry)).slice(0, 4).map(p => `<div class="row"><span>${esc(p.name)}</span><span class="pill y">exp ${esc(p.expiry)}</span></div>`).join("") || (low.length ? "" : `<p class="m">Everything looks healthy ✔</p>`)}</div></div>`);
-      bind("pd", v => { S.period = +v; V_dash() });
-    }
+  <div class="card"><h3>⚠ Needs attention</h3>${low.slice(0, 5).map(p => `<div class="row"><span>${esc(p.name)}</span><span class="pill r">${p.stock} left</span></div>`).join("")}${MP.filter(p => soon(p.expiry)).slice(0, 4).map(p => `<div class="row"><span>${esc(p.name)}</span><span class="pill y">exp ${esc(p.expiry)}</span></div>`).join("") || (low.length ? "" : `<p class="m">Everything looks healthy ✔</p>`)}</div></div>`);
+  bind("pd", v => { S.period = +v; V_dash() });
+}
 
-    // ---------- admin: deliveries ----------
-    async function V_deliv() {
-      await loadO(); const F = S.dfilter, q = S.dq.toLowerCase(), c = s => S.orders.filter(o => o.status === s).length;
-      const L = S.orders.filter(o => (F === "All" || (F === "Open" ? ["Processing", "Dispatched"].includes(o.status) : o.status === F)) && (!q || (o.id + " " + o.recipient_name).toLowerCase().includes(q)));
-      const next = { Processing: "Dispatched", Dispatched: "Delivered" };
-      show(`<h1>Deliveries</h1><p><span class="live"></span>Live board · updated ${new Date().toLocaleTimeString()}</p><div class="kp"><div class="k"><small>Processing</small><b>${c("Processing")}</b></div><div class="k y"><small>Dispatched</small><b>${c("Dispatched")}</b></div><div class="k"><small>Delivered</small><b>${c("Delivered")}</b></div><div class="k r"><small>Awaiting payment</small><b>${S.orders.filter(unpaid).length}</b></div></div>
+// ---------- admin: deliveries ----------
+async function V_deliv() {
+  await loadO(); const F = S.dfilter, q = S.dq.toLowerCase(), c = s => S.orders.filter(o => o.status === s).length;
+  const L = S.orders.filter(o => (F === "All" || (F === "Open" ? ["Processing", "Dispatched"].includes(o.status) : o.status === F)) && (!q || (o.id + " " + o.recipient_name).toLowerCase().includes(q)));
+  const next = { Processing: "Dispatched", Dispatched: "Delivered" };
+  show(`<h1>${role() === "seller" ? "Incoming orders" : "Deliveries"}</h1><p><span class="live"></span>Live board · updated ${new Date().toLocaleTimeString()}</p><div class="kp"><div class="k"><small>Processing</small><b>${c("Processing")}</b></div><div class="k y"><small>Dispatched</small><b>${c("Dispatched")}</b></div><div class="k"><small>Delivered</small><b>${c("Delivered")}</b></div><div class="k r"><small>Awaiting payment</small><b>${S.orders.filter(unpaid).length}</b></div></div>
   <div class="tools"><input id="dq" placeholder="Search by order ID or facility" value="${esc(S.dq)}"></div>${rad("df", ["Open", "Processing", "Dispatched", "Delivered", "Cancelled", "All"].map(x => [x, x]), F)}
   ${L.map(o => `<div class="card"><div class="row"><b>Order #${o.id} · ${esc(o.recipient_name)}</b>${ppill(o)}</div>${trk(o)}<div class="m">📍 ${esc(o.address)} · 📞 <a href="tel:${esc(o.phone)}">${esc(o.phone)}</a> · <a target="_blank" href="https://wa.me/${esc(o.phone).replace(/\D/g, "")}">WhatsApp</a></div><div class="m">${o.items.map(i => esc(i.name) + " ×" + i.qty).join(", ")}</div>
   <div class="row"><b>${ugx(o.total)}</b><span>${next[o.status] ? `<button class="btn sm" data-st="${next[o.status]}" data-oid="${o.id}">Mark ${next[o.status]}</button> ` : ""}${["Processing", "Dispatched"].includes(o.status) ? `<button class="btn sm r" data-st="Cancelled" data-oid="${o.id}" onclick="return confirm('Cancel this order?')">Cancel</button>` : ""}</span></div></div>`).join("") || empty("🎉", "All caught up", "No orders match this filter.")}`);
-      bind("df", v => { S.dfilter = v; V_deliv() }); $("#dq").oninput = e => { S.dq = e.target.value; clearTimeout(V_deliv.t); V_deliv.t = setTimeout(async () => { await V_deliv(); const i = $("#dq"); i.focus(); i.setSelectionRange(99, 99) }, 400) };
-      timer = setInterval(() => { if (S.view === "deliv" && document.activeElement?.id !== "dq") V_deliv() }, 20000);
-    }
+  bind("df", v => { S.dfilter = v; V_deliv() }); $("#dq").oninput = e => { S.dq = e.target.value; clearTimeout(V_deliv.t); V_deliv.t = setTimeout(async () => { await V_deliv(); const i = $("#dq"); i.focus(); i.setSelectionRange(99, 99) }, 400) };
+  timer = setInterval(() => { if (S.view === "deliv" && document.activeElement?.id !== "dq") V_deliv() }, 20000);
+}
 
-    // ---------- admin: inventory ----------
-    async function V_inv() {
-      await loadP(true); const P = S.products, f = (S.tab.iq || "").toLowerCase(), L = P.filter(p => !f || (p.name + p.id + (p.category || "")).toLowerCase().includes(f));
-      const inp = (x, k, t = "number") => `<input type="${t}" value="${esc(x[k] ?? "")}" data-p="${esc(x.id)}" data-f="${k}">`, val = P.reduce((s, p) => s + p.price * p.stock, 0);
-      show(`<h1>Inventory</h1><div class="kp"><div class="k"><small>Products</small><b>${P.length}</b></div><div class="k y"><small>Stock value</small><b>${ugx(val)}</b></div><div class="k r"><small>Low stock</small><b>${P.filter(p => p.stock <= p.reorder_level).length}</b></div><div class="k y"><small>Expiring ≤ 90 days</small><b>${P.filter(p => soon(p.expiry)).length}</b></div></div>
+// ---------- admin: inventory ----------
+async function V_inv() {
+  await loadP(true); const P = role() === "seller" ? S.products.filter(x => x.seller_id === S.me.id) : S.products, f = (S.tab.iq || "").toLowerCase(), L = P.filter(p => !f || (p.name + p.id + (p.category || "")).toLowerCase().includes(f));
+  const inp = (x, k, t = "number") => `<input type="${t}" value="${esc(x[k] ?? "")}" data-p="${esc(x.id)}" data-f="${k}">`, val = P.reduce((s, p) => s + p.price * p.stock, 0);
+  show(`<h1>${role() === "seller" ? "My products" : "Inventory"}</h1><div class="kp"><div class="k"><small>Products</small><b>${P.length}</b></div><div class="k y"><small>Stock value</small><b>${ugx(val)}</b></div><div class="k r"><small>Low stock</small><b>${P.filter(p => p.stock <= p.reorder_level).length}</b></div><div class="k y"><small>Expiring ≤ 90 days</small><b>${P.filter(p => soon(p.expiry)).length}</b></div></div>
   <div class="card"><div class="row"><input id="iq" placeholder="🔍 Filter products" value="${esc(S.tab.iq || "")}" style="max-width:320px"><button class="btn l" id="csv">⬇ Export orders CSV</button></div><div class="sc"><table><thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Old price</th><th>Stock</th><th>Reorder</th><th>Category</th><th>NDA no.</th><th>Batch</th><th>Image URL</th><th></th></tr></thead><tbody>${L.map(x => `<tr class="${x.stock <= x.reorder_level ? "lw" : ""}"><td>${esc(x.id)}</td><td>${esc(x.name)}${soon(x.expiry) ? " ⚠" : ""}</td><td>${inp(x, "price")}</td><td>${inp(x, "old_price")}</td><td>${inp(x, "stock")}</td><td>${inp(x, "reorder_level")}</td><td>${inp(x, "category", "text")}</td><td>${inp(x, "nda_number", "text")}</td><td>${inp(x, "batch_no", "text")}</td><td>${inp(x, "image_url", "text")}</td><td><button class="btn sm" data-inv="${esc(x.id)}">Save</button></td></tr>`).join("")}</tbody></table></div></div>
   <div class="card"><h3>Add product</h3><div class="kp"><input id="nid" placeholder="ID e.g. INV-009"><input id="nn" placeholder="Name"><input id="nc" list="cl" placeholder="Category"><datalist id="cl">${[...new Set(P.map(x => x.category).filter(Boolean))].map(c => `<option value="${esc(c)}">`).join("")}</datalist><input id="npr" type="number" placeholder="Price"><input id="nst" type="number" placeholder="Stock"><input id="nex" type="date"><input id="nda" placeholder="NDA number (optional)"><input id="nb" placeholder="Batch no. (optional)"><input id="nim" placeholder="Image URL (optional)"></div><button class="btn" id="add">Add product</button></div>`);
-      $("#iq").onchange = e => { S.tab.iq = e.target.value; V_inv() };
-      $$("[data-inv]").forEach(b => b.onclick = async () => { const id = b.dataset.inv, v = {}; $$(`[data-p="${id}"]`).forEach(i => v[i.dataset.f] = i.type === "number" ? (i.value === "" ? null : +i.value) : (i.value || null)); const { error } = await sb.from("products").update(v).eq("id", id); toast(error ? error.message : "Saved", !!error) });
-      $("#csv").onclick = async () => { await loadO(); const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`, rows = [["Order", "Date", "Customer", "Phone", "Address", "Items", "Total", "Payment", "Payment status", "Status"], ...S.orders.map(r => [r.id, r.created_at, r.recipient_name, r.phone, r.address, r.items.map(i => i.name + " x" + i.qty).join("; "), r.total, r.payment_method, r.payment_status, r.status])], a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([rows.map(r => r.map(q).join(",")).join("\n")], { type: "text/csv" })); a.download = "medsupply-orders.csv"; a.click() };
-      $("#add").onclick = async () => { const r = { id: $("#nid").value.trim(), name: $("#nn").value.trim(), category: $("#nc").value.trim(), price: +$("#npr").value, stock: +$("#nst").value, expiry: $("#nex").value || null, image_url: $("#nim").value.trim() || null }; if ($("#nda").value) r.nda_number = $("#nda").value; if ($("#nb").value) r.batch_no = $("#nb").value; const { error } = await sb.from("products").insert(r); if (error) return toast(error.message, 1); toast("Product added"); V_inv() };
-    }
-    const V = { shop: V_shop, checkout: V_checkout, orders: V_orders, pay: V_pay, auth: V_auth, help: V_help, dash: V_dash, deliv: V_deliv, inv: V_inv };
-  </script>
+  $("#iq").onchange = e => { S.tab.iq = e.target.value; V_inv() };
+  $$("[data-inv]").forEach(b => b.onclick = async () => { const id = b.dataset.inv, v = {}; $$(`[data-p="${id}"]`).forEach(i => v[i.dataset.f] = i.type === "number" ? (i.value === "" ? null : +i.value) : (i.value || null)); const { error } = await sb.from("products").update(v).eq("id", id); toast(error ? error.message : "Saved", !!error) });
+  $("#csv").onclick = async () => { await loadO(); const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`, rows = [["Order", "Date", "Customer", "Phone", "Address", "Items", "Total", "Payment", "Payment status", "Status"], ...S.orders.map(r => [r.id, r.created_at, r.recipient_name, r.phone, r.address, r.items.map(i => i.name + " x" + i.qty).join("; "), r.total, r.payment_method, r.payment_status, r.status])], a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([rows.map(r => r.map(q).join(",")).join("\n")], { type: "text/csv" })); a.download = "medsupply-orders.csv"; a.click() };
+  $("#add").onclick = async () => { const sl = role() === "seller", r = { id: $("#nid").value.trim() || (sl ? "P-" + Date.now().toString(36).toUpperCase() : ""), name: $("#nn").value.trim(), category: $("#nc").value.trim(), price: +$("#npr").value, stock: +$("#nst").value, expiry: $("#nex").value || null, image_url: $("#nim").value.trim() || null }; if ($("#nda").value) r.nda_number = $("#nda").value; if ($("#nb").value) r.batch_no = $("#nb").value; if (sl) r.seller_id = S.me.id; const { error } = await sb.from("products").insert(r); if (error) return toast(error.message, 1); toast("Product added"); V_inv() };
+}
+async function V_sellers() {
+  await loadP(); const r = await sb.from("profiles").select("*").eq("account_type", "seller"); if (r.error) toast(r.error.message, 1);
+  const L = r.data || [], pc = x => `<span class="pill ${x === "approved" ? "" : x === "rejected" ? "r" : "y"}">${esc(x || "pending")}</span>`;
+  show(`<h1>Sellers</h1><div class="kp"><div class="k y"><small>Pending approval</small><b>${L.filter(x => (x.seller_status || "pending") === "pending").length}</b></div><div class="k"><small>Approved</small><b>${L.filter(x => x.seller_status === "approved").length}</b></div></div>` + (L.map(x => `<div class="card"><div class="row"><b>${esc(x.business_name || "Unnamed")}</b>${pc(x.seller_status)}</div><div class="m">📞 ${esc(x.phone || "-")} · 📍 ${esc(x.address || "-")} · ${S.products.filter(p => p.seller_id === x.id).length} products</div><div class="row"><span>${x.seller_status !== "approved" ? `<button class="btn sm" data-sel="${x.id}" data-sv="approved">✔ Approve</button> ` : ""}${x.seller_status !== "rejected" ? `<button class="btn sm r" data-sel="${x.id}" data-sv="rejected">${x.seller_status === "approved" ? "Suspend" : "Reject"}</button>` : ""}</span></div></div>`).join("") || empty("🤝", "No seller applications", "Suppliers who register as sellers will appear here.")));
+}
+const V = { sdash: V_dash, sprod: V_inv, sord: V_deliv, sellers: V_sellers, shop: V_shop, checkout: V_checkout, orders: V_orders, pay: V_pay, auth: V_auth, help: V_help, dash: V_dash, deliv: V_deliv, inv: V_inv };
+</script>
 </body>
-
 </html>
